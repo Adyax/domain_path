@@ -1,0 +1,47 @@
+entity.domain_path.canonical:
+  path: '/domain_path/{domain_path}'
+  defaults:
+    _entity_view: 'domain_path'
+    _title: 'Domain path Content'
+  requirements:
+    _entity_access: 'domain_path.view'
+
+entity.domain_path.collection:
+  path: '/domain_path/list'
+  defaults:
+    _entity_list: 'domain_path'
+    _title: 'Domain path List'
+  requirements:
+    _permission: 'administer domain path entity'
+
+entity.domain_path_add:
+  path: '/domain_path/add'
+  defaults:
+    _entity_form: domain_path.add
+    _title: 'Add Domain path'
+  requirements:
+    _entity_create_access: 'domain_path'
+
+entity.domain_path.edit_form:
+  path: '/domain_path/{domain_path}/edit'
+  defaults:
+    _entity_form: domain_path.edit
+    _title: 'Edit Domain path'
+  requirements:
+    _entity_access: 'domain_path.edit'
+
+entity.domain_path.delete_form:
+  path: '/domain_path/{domain_path}/delete'
+  defaults:
+    _entity_form: domain_path.delete
+    _title: 'Delete Domain path'
+  requirements:
+    _entity_access: 'domain_path.delete'
+
+entity.domain_path_settings:
+  path: 'admin/structure/domain_path_settings'
+  defaults:
+    _form: '\Drupal\domain_path\Form\DomainPathSettingsForm'
+    _title: 'Domain path Settings'
+  requirements:
+    _permission: 'administer domain path entity'

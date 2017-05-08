@@ -1,0 +1,11 @@
+view domain path entity:
+  title: 'View Domain path entity'
+add domain path entity:
+  title: 'Add Domain path entity'
+edit domain path entity:
+  title: 'Edit Domain path entity'
+delete domain path entity:
+  title: 'Delete Domain path entity'
+administer domain path entity:
+  title: 'Administer Domain path entity'
+  restrict access: TRUE

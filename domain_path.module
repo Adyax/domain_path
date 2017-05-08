@@ -1,0 +1,72 @@
+<?php
+
+/**
+ * @file
+ *  Path alias handling for multiple domains.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Utility\Html;
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $b = 5;
+  if (isset($form['domain'])) {
+    //$form['domain']['#group'] = 'additional_settings';
+  }
+
+  $form['domain_path'] = [
+    '#tree' => TRUE,
+    '#title' => t('Domain-specific paths'),
+    '#type' => 'details',
+    '#group' => 'additional_settings',
+    //'#access' => user_access('edit domain paths'),
+  ];
+
+  $paths = [];
+  $domains = \Drupal::service('domain.loader')->loadMultipleSorted();
+  $current = t('<none>');
+
+  $path = $nid = FALSE;
+  $node = $form_state->getFormObject()->getEntity();
+  if ($node) {
+    $nid = $node->id();
+    $current = \Drupal::service('path.alias_manager')->getAliasByPath("/node/$nid");
+  }
+
+  $form['domain_path']['current'] = [
+    '#type' => 'item',
+    '#title' => t('Current alias'),
+    '#markup' => Html::escape($current),
+    '#weight' => -5,
+  ];
+
+  $show_delete = FALSE;
+  foreach ($domains as $domain_id => $domain) {
+    $path = FALSE;
+    if ($nid) {
+      //$path = domain_path_lookup_path('alias', 'node/' . $nid, $domain_id);
+    }
+
+    $default = '';
+    if ($path) {
+      $show_delete = TRUE;
+    }
+    // TODO: Only exposed checked domains?
+    $form['domain_path'][$domain_id] = [
+      '#type' => 'textfield',
+      '#title' => Html::escape($domain->getPath()),
+      '#default_value' => $path ? $path : $default,
+      //'#access' => user_access('edit domain paths'),
+    ];
+  }
+  $form['domain_path']['domain_path_delete'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Delete domain-specific aliases'),
+    '#default_value' => FALSE,
+    '#access' => $show_delete,
+    '#weight' => -1,
+  ];
+}

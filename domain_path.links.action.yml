@@ -1,0 +1,6 @@
+entity.domain_path_add:
+  route_name: entity.domain_path_add
+  title: 'Add Domain path'
+  appears_on:
+    - entity.domain_path.collection
+    - entity.domain_path.canonical

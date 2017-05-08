@@ -1,0 +1,11 @@
+entity.domain_path.collection:
+  title: 'Domain Path: Domain Paths Listing'
+  route_name: entity.domain_path.collection
+  description: 'List Domain Paths'
+  weight: 10
+
+domain_path.admin.structure.settings:
+  title: Domain Path Settings
+  description: 'Configure Domain Path entity'
+  route_name:  entity.domain_path_settings
+  parent: system.admin_structure

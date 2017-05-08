@@ -1,0 +1,9 @@
+name: 'Domain Path'
+description: 'Allows separate path aliases per domain.'
+type: module
+package: Domain
+# version: VERSION
+core: 8.x
+dependencies:
+  - domain
+  - path
