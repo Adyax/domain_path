@@ -1,0 +1,5 @@
+services:
+  domain_path.loader:
+    class: Drupal\domain_path\DomainPathLoader
+    tags:
+      - { name: persist }

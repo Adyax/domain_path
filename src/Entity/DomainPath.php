@@ -9,6 +9,7 @@ namespace Drupal\domain_path\Entity;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\domain_path\DomainPathInterface;
 
 /**
  * Defines the DomainPath entity.
@@ -51,7 +52,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *   field_ui_base_route = "entity.domain_path_settings",
  * )
  */
-class DomainPath extends ContentEntityBase {
+class DomainPath extends ContentEntityBase  implements DomainPathInterface {
 
   /**
    * {@inheritdoc}
@@ -184,4 +185,5 @@ class DomainPath extends ContentEntityBase {
 
     return $fields;
   }
+
 }

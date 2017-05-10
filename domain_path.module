@@ -12,7 +12,6 @@ use Drupal\Component\Utility\Html;
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $b = 5;
   if (isset($form['domain'])) {
     //$form['domain']['#group'] = 'additional_settings';
   }
@@ -25,15 +24,16 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
     //'#access' => user_access('edit domain paths'),
   ];
 
-  $paths = [];
   $domains = \Drupal::service('domain.loader')->loadMultipleSorted();
   $current = t('<none>');
 
-  $path = $nid = FALSE;
+  $nid = FALSE;
   $node = $form_state->getFormObject()->getEntity();
+  $langcode = NULL;
   if ($node) {
     $nid = $node->id();
     $current = \Drupal::service('path.alias_manager')->getAliasByPath("/node/$nid");
+    $langcode = $node->get('langcode')->value;
   }
 
   $form['domain_path']['current'] = [
@@ -44,17 +44,27 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
   ];
 
   $show_delete = FALSE;
+  $domain_path_loader = \Drupal::service('domain_path.loader');
+
   foreach ($domains as $domain_id => $domain) {
     $path = FALSE;
-    if ($nid) {
-      //$path = domain_path_lookup_path('alias', 'node/' . $nid, $domain_id);
+    $properties = [
+      'entity_id' => $nid,
+      'language' => $langcode,
+      'domain_id' => $domain_id,
+      'entity_type' => 'node',
+    ];
+    if ($nid && $domain_paths = $domain_path_loader->loadByProperties($properties)) {
+      foreach ($domain_paths as $domain_path) {
+        $path = $domain_path->get('alias')->value;
+      }
     }
 
     $default = '';
     if ($path) {
       $show_delete = TRUE;
     }
-    // TODO: Only exposed checked domains?
+
     $form['domain_path'][$domain_id] = [
       '#type' => 'textfield',
       '#title' => Html::escape($domain->getPath()),
@@ -69,4 +79,92 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
     '#access' => $show_delete,
     '#weight' => -1,
   ];
+
+  if (!empty($form['actions'])) {
+    foreach (array_keys($form['actions']) as $action) {
+      if (isset($form['actions'][$action]['#submit'])) {
+        array_unshift($form['actions'][$action]['#submit'], '_domain_path_node_form_submit');
+      }
+    }
+  }
+}
+
+/**
+ * Custom submit for node form.
+ *
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ */
+function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  $domain_path_values = $form_state->getValue('domain_path');
+
+  /*if (empty($node->domain_path)) {
+    return;
+  }*/
+
+  // If not set to revert, then save changes.
+  if (empty($domain_path_values['domain_path_delete'])) {
+    $paths = [];
+    $domain_path_loader = \Drupal::service('domain_path.loader');
+    unset($domain_path_values['current']);
+    unset($domain_path_values['domain_path_delete']);
+    $langcode = $node->get('langcode')->value;
+    $entity_type = 'node';
+    $nid = $node->id();
+    foreach ($domain_path_values as $domain_id => $alias) {
+      $properties = [
+        'entity_id' => $nid,
+        'language' => $langcode,
+        'domain_id' => $domain_id,
+        'entity_type' => $entity_type,
+        //'alias' => $alias,
+      ];
+      $create_new = FALSE;
+      $path = $domain_path_loader->loadByProperties($properties);
+      if (!$path) {
+        $create_new = TRUE;
+        $path = [];
+      }
+
+      // Set the path alias.
+      $path['alias'] = $alias;
+
+      // Fill in missing pieces.
+      $path += [
+        'domain_id' => $domain_id,
+        'source' => "node/$nid",
+        'language' => $langcode,
+        'entity_type' => $entity_type,
+        'entity_id' => $nid,
+      ];
+
+      // Save the paths.
+      if ($create_new) {
+        $domain_path_storage = $domain_path_loader->getStorage();
+        $domain_path_entity = $domain_path_storage->create(['type' => 'domain_path']);
+        foreach ($path as $field => $value) {
+          $domain_path_entity->set($field, $value);
+        }
+        $domain_path_entity->save();
+      }
+
+      // Delete old alias if user erased it.
+      /*if (!empty($path['dpid']) && empty($path['alias'])) {
+        domain_path_path_delete($path['dpid']);
+      }
+      elseif (!empty($path['alias'])) {
+        $paths[$domain_id] = $path;
+      }*/
+    }
+  }
+  // Reverted delete all domain path aliases.
+//  else {
+//    domain_path_node_delete($node);
+//  }
+//  if (isset($node->end) && isset($node->start)) {
+//    if ($node->start > $node->end) {
+//      form_set_error('time', t('An event may not end before it starts.'));
+//    }
+//  }
 }
