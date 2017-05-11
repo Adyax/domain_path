@@ -12,6 +12,7 @@ use Drupal\Component\Utility\Html;
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $user = \Drupal::currentUser();
   if (isset($form['domain'])) {
     //$form['domain']['#group'] = 'additional_settings';
   }
@@ -21,7 +22,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
     '#title' => t('Domain-specific paths'),
     '#type' => 'details',
     '#group' => 'additional_settings',
-    //'#access' => user_access('edit domain paths'),
+    '#access' => $user->hasPermission('edit domain path entity'),
   ];
 
   $domains = \Drupal::service('domain.loader')->loadMultipleSorted();
@@ -30,8 +31,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
   $nid = FALSE;
   $node = $form_state->getFormObject()->getEntity();
   $langcode = NULL;
-  if ($node) {
-    $nid = $node->id();
+  if ($node && $nid = $node->id()) {
     $current = \Drupal::service('path.alias_manager')->getAliasByPath("/node/$nid");
     $langcode = $node->get('langcode')->value;
   }
@@ -69,7 +69,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
       '#type' => 'textfield',
       '#title' => Html::escape($domain->getPath()),
       '#default_value' => $path ? $path : $default,
-      //'#access' => user_access('edit domain paths'),
+      '#access' => $user->hasPermission('edit domain path entity'),
     ];
   }
   $form['domain_path']['domain_path_delete'] = [
