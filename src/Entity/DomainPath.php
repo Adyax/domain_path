@@ -10,6 +10,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\domain_path\DomainPathInterface;
+use Drupal\Core\Url;
 
 /**
  * Defines the DomainPath entity.
@@ -192,6 +193,13 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
    * @return string
    */
   public function getUrl() {
-    return $this->get('alias')->get(0)->getValue();
+    $domain_id = $this->get('domain_id')->get(0)->getValue()['target_id'];
+    $entity_type = 'node';
+    $nid = $this->get('entity_id')->get(0)->getValue()['target_id'];
+    return Url::fromRoute('domain_path.view', [
+      'domain' => $domain_id,
+      'entity_type' => $entity_type,
+      'node' => $nid
+    ]);
   }
 }
