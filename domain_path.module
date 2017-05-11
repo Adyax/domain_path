@@ -14,6 +14,7 @@ use Drupal\domain\DomainNegotiator;
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $user = \Drupal::currentUser();
   if (isset($form['domain'])) {
     //$form['domain']['#group'] = 'additional_settings';
   }
@@ -23,7 +24,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
     '#title' => t('Domain-specific paths'),
     '#type' => 'details',
     '#group' => 'additional_settings',
-    //'#access' => user_access('edit domain paths'),
+    '#access' => $user->hasPermission('edit domain path entity'),
   ];
 
   $domains = \Drupal::service('domain.loader')->loadMultipleSorted();
@@ -32,8 +33,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
   $nid = FALSE;
   $node = $form_state->getFormObject()->getEntity();
   $langcode = NULL;
-  if ($node) {
-    $nid = $node->id();
+  if ($node && $nid = $node->id()) {
     $current = \Drupal::service('path.alias_manager')->getAliasByPath("/node/$nid");
     $langcode = $node->get('langcode')->value;
   }
@@ -71,7 +71,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
       '#type' => 'textfield',
       '#title' => Html::escape($domain->getPath()),
       '#default_value' => $path ? $path : $default,
-      //'#access' => user_access('edit domain paths'),
+      '#access' => $user->hasPermission('edit domain path entity'),
     ];
   }
   $form['domain_path']['domain_path_delete'] = [
@@ -85,7 +85,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
   if (!empty($form['actions'])) {
     foreach (array_keys($form['actions']) as $action) {
       if (isset($form['actions'][$action]['#submit'])) {
-        array_unshift($form['actions'][$action]['#submit'], '_domain_path_node_form_submit');
+        $form['actions'][$action]['#submit'][] = '_domain_path_node_form_submit';
       }
     }
   }
@@ -115,6 +115,10 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
     $entity_type = 'node';
     $nid = $node->id();
     foreach ($domain_path_values as $domain_id => $alias) {
+      if (!$alias) {
+        continue;
+      }
+      $create_new = FALSE;
       $properties = [
         'entity_id' => $nid,
         'language' => $langcode,
@@ -122,7 +126,6 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
         'entity_type' => $entity_type,
         //'alias' => $alias,
       ];
-      $create_new = FALSE;
       $path = $domain_path_loader->loadByProperties($properties);
       if (!$path) {
         $create_new = TRUE;
