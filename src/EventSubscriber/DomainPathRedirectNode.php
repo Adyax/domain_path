@@ -26,6 +26,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Drupal\domain\DomainNegotiatorInterface;
+use Drupal\Core\Routing\TrustedRedirectResponse;
 
 class DomainPathRedirectNode implements EventSubscriberInterface {
 
@@ -145,12 +146,12 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
     }
 
     // Get URL info and process it to be used for hash generation.
-    parse_str($request->getQueryString(), $request_query);
+    //parse_str($request->getQueryString(), $request_query);
 
     // Do the inbound processing so that for example language prefixes are
     // removed.
-    $path = $this->pathProcessor->processInbound($request->getPathInfo(), $request);
-    $path = ltrim($path, '/');
+    //$path = $this->pathProcessor->processInbound($request->getPathInfo(), $request);
+    //$path = ltrim($path, '/');
 
     $this->context->fromRequest($request);
 
@@ -159,7 +160,7 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
       $domain = $this->domain_negotiator->getActiveDomain();
 
       // TODO: enable for all entities types
-      $redirect = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());
+      $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());
 
     }
     catch (RedirectLoopException $e) {
@@ -171,24 +172,17 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
       return;
     }
 
-    if (!empty($redirect)) {
+    if (!empty($domain_entity)) {
 
       // Handle internal path.
-      $url = $redirect->getUrl();
+      $url = $domain_entity->getUrl();
 
-      $response = new RedirectResponse($url['value'], 301);
-      $event->setResponse($response);
-
-
-      /*if ($this->config->get('passthrough_querystring')) {
-        $url->setOption('query', (array) $url->getOption('query') + $request_query);
-      }*/
       $headers = [
-        'X-Redirect-ID' => $redirect->id(),
+        'X-Redirect-ID' => $domain_entity->id(),
       ];
-      //$response = new TrustedRedirectResponse($url->setAbsolute()->toString(), $redirect->getStatusCode(), $headers);
-      //$response->addCacheableDependency($redirect);
-      //$event->setResponse($response);
+      $response = new TrustedRedirectResponse($url->setAbsolute()->toString(), 301, $headers);
+      $response->addCacheableDependency($domain_entity);
+      $event->setResponse($response);
     }
   }
 
