@@ -3,3 +3,13 @@ services:
     class: Drupal\domain_path\DomainPathLoader
     tags:
       - { name: persist }
+  domain_path.repository:
+    class: Drupal\domain_path\DomainPathRepository
+    arguments: ['@entity.manager', '@database']
+    tags:
+      - { name: backend_overridable }
+  domain_path.node_redirect:
+    class: Drupal\domain_path\EventSubscriber\DomainPathRedirectNode
+    arguments: ['@domain.negotiator', '@domain_path.repository', '@language_manager', '@config.factory', '@path.alias_manager', '@module_handler', '@entity.manager', '@redirect.checker', '@router.request_context', '@path_processor_manager']
+    tags:
+      - { name: event_subscriber }
