@@ -7,7 +7,6 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Html;
-use Drupal\node\Entity\Node;
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter().
@@ -109,40 +108,24 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
   $domain_path_values = $form_state->getValue('domain_path');
   $domain_path_loader = \Drupal::service('domain_path.loader');
 
-  /*if (empty($node->domain_path)) {
-    return;
-  }*/
-
   // If not set to revert, then save changes.
   if (empty($domain_path_values['domain_path_delete'])) {
-    $paths = [];
     unset($domain_path_values['current']);
     unset($domain_path_values['domain_path_delete']);
     foreach ($domain_path_values as $domain_id => $alias) {
+      $properties['domain_id'] = $domain_id;
+      $domain_path_entity_data = $domain_path_loader->loadByProperties($properties);
+
       if (!$alias) {
+        if ($domain_path_entity_data) {
+          $domain_path_entity_for_delete = reset($domain_path_entity_data);
+          $domain_path_entity_for_delete->delete();
+        }
         continue;
       }
-      $update_entity = $create_new = FALSE;
-      $properties += [
-        'domain_id' => $domain_id,
-      ];
-      $domain_path_entity_data = $domain_path_loader->loadByProperties($properties);
-      if (!$domain_path_entity_data) {
-        $create_new = TRUE;
-        $properties_map = [];
-      }
-      else {
-        $domain_path_entity = reset($domain_path_entity_data);
-        if ($domain_path_entity->get('alias')->value != $alias) {
-          $update_entity = TRUE;
-        }
-      }
 
-      // Set the path alias.
-      $properties_map['alias'] = $alias;
-
-      // Fill in missing pieces.
-      $properties_map += [
+      $properties_map = [
+        'alias' => $alias,
         'domain_id' => $domain_id,
         'source' => "node/$nid",
         'language' => $langcode,
@@ -150,8 +133,7 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
         'entity_id' => $nid,
       ];
 
-      // Save the paths.
-      if ($create_new) {
+      if (!$domain_path_entity_data) {
         $domain_path_storage = $domain_path_loader->getStorage();
         $domain_path_entity = $domain_path_storage->create(['type' => 'domain_path']);
         foreach ($properties_map as $field => $value) {
@@ -160,14 +142,13 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
         $domain_path_entity->save();
         \Drupal::service('path.alias_storage')->save('/domain_path/' . $properties_map['domain_id'] . '/node/' . $nid , $properties_map['alias'], $properties_map['language']);
       }
-
-      // Delete old alias if user erased it.
-      /*if (!empty($path['dpid']) && empty($path['alias'])) {
-        domain_path_path_delete($path['dpid']);
+      else {
+        $domain_path_entity = reset($domain_path_entity_data);
+        if ($domain_path_entity->get('alias')->value != $alias) {
+          $domain_path_entity->set('alias', $alias);
+          $domain_path_entity->save();
+        }
       }
-      elseif (!empty($path['alias'])) {
-        $paths[$domain_id] = $path;
-      }*/
     }
   }
   else {
