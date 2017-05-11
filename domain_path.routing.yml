@@ -13,6 +13,8 @@ entity.domain_path.collection:
     _title: 'Domain path List'
   requirements:
     _permission: 'administer domain path entity'
+  options:
+    _admin_route: TRUE
 
 entity.domain_path_add:
   path: '/domain_path/add'
@@ -21,6 +23,8 @@ entity.domain_path_add:
     _title: 'Add Domain path'
   requirements:
     _entity_create_access: 'domain_path'
+  options:
+    _admin_route: TRUE
 
 entity.domain_path.edit_form:
   path: '/domain_path/{domain_path}/edit'
@@ -29,6 +33,8 @@ entity.domain_path.edit_form:
     _title: 'Edit Domain path'
   requirements:
     _entity_access: 'domain_path.edit'
+  options:
+    _admin_route: TRUE
 
 entity.domain_path.delete_form:
   path: '/domain_path/{domain_path}/delete'
@@ -37,6 +43,8 @@ entity.domain_path.delete_form:
     _title: 'Delete Domain path'
   requirements:
     _entity_access: 'domain_path.delete'
+  options:
+    _admin_route: TRUE
 
 entity.domain_path_settings:
   path: 'admin/structure/domain_path_settings'
