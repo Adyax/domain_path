@@ -83,7 +83,7 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
   if (!empty($form['actions'])) {
     foreach (array_keys($form['actions']) as $action) {
       if (isset($form['actions'][$action]['#submit'])) {
-        array_unshift($form['actions'][$action]['#submit'], '_domain_path_node_form_submit');
+        $form['actions'][$action]['#submit'][] = '_domain_path_node_form_submit';
       }
     }
   }
@@ -113,6 +113,10 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
     $entity_type = 'node';
     $nid = $node->id();
     foreach ($domain_path_values as $domain_id => $alias) {
+      if (!$alias) {
+        continue;
+      }
+      $create_new = FALSE;
       $properties = [
         'entity_id' => $nid,
         'language' => $langcode,
@@ -120,7 +124,6 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
         'entity_type' => $entity_type,
         //'alias' => $alias,
       ];
-      $create_new = FALSE;
       $path = $domain_path_loader->loadByProperties($properties);
       if (!$path) {
         $create_new = TRUE;
