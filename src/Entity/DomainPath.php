@@ -186,4 +186,12 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
     return $fields;
   }
 
+  /**
+   * Gets the source base URL.
+   *
+   * @return string
+   */
+  public function getUrl() {
+    return $this->get('alias')->get(0)->getValue();
+  }
 }

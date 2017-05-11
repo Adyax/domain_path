@@ -7,6 +7,8 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Html;
+use Drupal\domain\DomainInterface;
+use Drupal\domain\DomainNegotiator;
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter().
@@ -167,4 +169,51 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
 //      form_set_error('time', t('An event may not end before it starts.'));
 //    }
 //  }
+}
+
+/**
+ * Implements hook_domain_request_alter().
+ *
+ * The logic in this function gives us the following matches for a request to
+ * foo.example.com.
+ *
+ *   'foo.*'
+ *   '*.example.com'
+ *   'foo.*.com'
+ *   'foo.example.*'
+ *   '*.foo.example.com'
+ *   'foo.example.com.*'
+ *
+ * These patterns should be sufficient for most conditions.
+ */
+function domain_path_domain_request_alter(DomainInterface &$domain) {
+  // If an exact match has loaded, do nothing.
+  if ($domain->getMatchType() == DomainNegotiator::DOMAIN_MATCH_EXACT) {
+  //  return;
+  }
+
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node) {
+    // You can get nid and anything else you need from the node object.
+    $nid = $node->id();
+    print_r($nid);
+    //$domain->setRedirect($redirect);
+    return new \Symfony\Component\HttpFoundation\RedirectResponse('/node/2');
+  }
+
+  // If no exact match, then run the alias load routine.
+/*  $hostname = $domain->getHostname();
+  $alias_loader = \Drupal::service('domain_alias.loader');
+  $domain_loader = \Drupal::service('domain.loader');
+
+  if ($alias = $alias_loader->loadByHostname($hostname)) {
+    if ($domain = $domain_loader->load($alias->getDomainId())) {
+      $domain->addProperty('alias', $alias);
+      $domain->setMatchType(DomainNegotiator::DOMAIN_MATCH_ALIAS);
+      $redirect = $alias->getRedirect();
+      if (!empty($redirect)) {
+        $domain->setRedirect($redirect);
+      }
+    }
+  }*/
 }
