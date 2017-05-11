@@ -37,7 +37,6 @@ use Drupal\domain_path\DomainPathInterface;
  *     "id" = "id",
  *     "uuid" = "uuid",
  *     "domain_id" = "domain_id",
- *     "source" = "source",
  *     "alias" = "alias",
  *     "language" = "language",
  *     "entity_type" = "entity_type",
@@ -108,26 +107,6 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
     // Name field for the domain path.
     // We set display options for the view as well as the form.
     // Users with correct privileges can change the view and edit configuration.
-    $fields['source'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Source'))
-      ->setDescription(t('The source of the Domain path entity.'))
-      ->setSettings(array(
-        'default_value' => '',
-        'max_length' => 255,
-        'text_processing' => 0,
-      ))
-      ->setDisplayOptions('view', array(
-        'label' => 'above',
-        'type' => 'string',
-        'weight' => -6,
-      ))
-      ->setDisplayOptions('form', array(
-        'type' => 'string_textfield',
-        'weight' => -6,
-      ))
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
-
     $fields['alias'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Alias'))
       ->setDescription(t('The alias of the Domain path entity.'))

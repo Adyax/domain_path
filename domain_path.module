@@ -7,6 +7,7 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Html;
+use Drupal\Core\Entity\EntityInterface;
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter().
@@ -87,6 +88,52 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
       }
     }
   }
+  $form['#validate'][] = '_domain_path_node_form_validate';
+}
+
+/**
+ * Custom validate for node form.
+ *
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ */
+function _domain_path_node_form_validate($form, FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  $nid = $node->id();
+  $domain_path_values = $form_state->getValue('domain_path');
+  if (!empty($domain_path_values['domain_path_delete'])) {
+    return;
+  }
+  unset($domain_path_values['current']);
+  unset($domain_path_values['domain_path_delete']);
+  $path_values = $form_state->getValue('path');
+  $alias = isset($path_values[0]['alias']) ? $path_values[0]['alias'] : NULL;
+  $domain_path_loader = \Drupal::service('domain_path.loader');
+  $domains = \Drupal::service('domain.loader')->loadMultipleSorted();
+  // Make sure we don't duplicate anything.
+  foreach ($domain_path_values as $domain_id => $path) {
+    $key = ($domain_id == -1) ? 0 : $domain_id;
+    if (!empty($path) && $path == $alias) {
+      $form_state->setErrorByName('domain_path][' . $key, t('Domain path "%path" matches the default path alias. You may leave the element blank.', ['%path' => $path]));
+    }
+    elseif (!empty($path)) {
+      $path_value = rtrim(trim($path), " \\/");
+      if ($path_value && $path_value[0] !== '/') {
+        $form_state->setErrorByName('domain_path][' . $key, t('Domain path "%path" needs to start with a slash.', ['%path' => $path]));
+      }
+      if (!empty($nid) && $domain_path_entity_data = $domain_path_loader->loadByProperties(['alias' => $path])) {
+        foreach ($domain_path_entity_data as $domain_path_entity) {
+          $check_entity_id = $domain_path_entity->get('entity_id')->target_id;
+          $check_domain_id = $domain_path_entity->get('domain_id')->target_id;
+          if ($check_entity_id != $nid
+            && $check_domain_id == $key) {
+            $domain_path = $domains[$domain_id]->getPath();
+            $form_state->setErrorByName('domain_path][' . $key, t('Domain path %path matches an existing domain path alias for %domain_path.', ['%path' => $path, '%domain_path' => $domain_path]));
+          }
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -127,7 +174,6 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
       $properties_map = [
         'alias' => $alias,
         'domain_id' => $domain_id,
-        'source' => "node/$nid",
         'language' => $langcode,
         'entity_type' => $entity_type,
         'entity_id' => $nid,

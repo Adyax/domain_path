@@ -80,7 +80,6 @@ class DomainPathListBuilder extends EntityListBuilder {
   public function buildHeader() {
     $header['id'] = $this->t('Domain Path ID');
     $header['domain_id'] = $this->t('Domain ID');
-    $header['source'] = $this->t('Source');
     $header['alias'] = $this->t('Alias');
     $header['language'] = $this->t('Language');
     $header['entity_type'] = $this->t('Entity Type');
@@ -96,7 +95,6 @@ class DomainPathListBuilder extends EntityListBuilder {
     /* @var $entity \Drupal\domain_path\Entity\DomainPath */
     $row['id'] = $entity->id();
     $row['domain_id'] = $entity->get('domain_id')->target_id;
-    $row['source'] = $entity->get('source')->value;
     $row['alias'] = $entity->get('alias')->value;
     $row['language'] = $entity->get('language')->value;
     $row['entity_type'] = $entity->get('entity_type')->value;
