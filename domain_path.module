@@ -96,6 +96,47 @@ function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state
 }
 
 /**
+ * Implements hook_entity_delete().
+ */
+function domain_path_entity_delete(EntityInterface $entity) {
+  _domain_path_delete_domain_path_entities($entity);
+}
+
+/**
+ * Implements hook_entity_translation_delete().
+ */
+function domain_path_entity_translation_delete(EntityInterface $translation) {
+  _domain_path_delete_domain_path_entities($translation);
+}
+
+/**
+ * Helper function for deleting domain path entities.
+ *
+ * @param \Drupal\Core\Entity\EntityInterface $entity
+ */
+function _domain_path_delete_domain_path_entities(EntityInterface $entity) {
+  $entity_type = $entity->getEntityTypeId();
+
+  if ($entity_type == 'node') {
+    $domain_path_loader = \Drupal::service('domain_path.loader');
+    $properties_map = [
+      'entity_type' => $entity_type,
+      'entity_id' => $entity->id(),
+      'language' => $entity->language(),
+    ];
+
+    $domain_path_entities = $domain_path_loader->loadByProperties($properties_map);
+
+    if ($domain_path_entities) {
+      foreach ($domain_path_entities as $domain_path_entity) {
+        $domain_path_entity->delete();
+      }
+    }
+  }
+
+}
+
+/**
  * Custom validate for node form.
  *
  * @param $form
