@@ -23,7 +23,7 @@ use Drupal\Core\Url;
  *   label = @Translation("Domain path entity"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\domain_path\Entity\Controller\DomainPathListBuilder",
+ *     "list_builder" = "Drupal\domain_path\Controller\DomainPathListBuilder",
  *     "views_data" = "Drupal\views\EntityViewsData",
  *     "form" = {
  *       "add" = "Drupal\domain_path\Form\DomainPathForm",

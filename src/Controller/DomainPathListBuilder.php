@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\domain_path\Entity\Controller;
+namespace Drupal\domain_path\Controller;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeInterface;

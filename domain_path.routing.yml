@@ -1,7 +1,7 @@
 entity.domain_path.canonical:
   path: '/domain_path/{domain_path}'
   defaults:
-    _entity_view: 'domain_path'
+    _controller: '\Drupal\domain_path\Controller\DomainPathViewController::view'
     _title: 'Domain path Content'
   requirements:
     _entity_access: 'domain_path.view'
@@ -13,7 +13,7 @@ entity.domain_path.collection:
     _title: 'Domain path List'
     _title_context: 'With modules'
   requirements:
-    _custom_access: 'Drupal\domain_path\Access\DomainPathListCheck::viewDomainPathList'
+    _custom_access: '\Drupal\domain_path\Access\DomainPathListCheck::viewDomainPathList'
 
 entity.domain_path_add:
   path: '/admin/config/domain_path/add'
