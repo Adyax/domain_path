@@ -19,7 +19,7 @@ class DomainPathRedirectLoopException extends \RuntimeException {
    *   The redirect ID that is involved in a loop.
    */
   public function __construct($domain_id, $entity_type, $id) {
-    parent::__construct(FormattableMarkup::placeholderFormat('Redirect loop identified at %entity_type for redirect %id on domain %domain', ['%entity_type' => $path, '%id' => $id, '%domain' => $domain_id]));
+    parent::__construct(FormattableMarkup::placeholderFormat('Redirect loop identified at %entity_type for redirect %id on domain %domain', ['%entity_type' => $entity_type, '%id' => $id, '%domain' => $domain_id]));
   }
 
 }

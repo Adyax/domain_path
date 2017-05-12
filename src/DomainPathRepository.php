@@ -75,7 +75,7 @@ class DomainPathRepository {
 
       // Check if this is a loop.
       if (in_array($id, $this->foundRedirects)) {
-        throw new DomainPathRedirectLoopException($source_path, $id);
+        throw new DomainPathRedirectLoopException($domain_id, 'node', $entity_id);
       }
       $this->foundRedirects[] = $id;
       $domain_path = $this->load($id);
@@ -90,38 +90,6 @@ class DomainPathRepository {
     }
 
     return NULL;
-  }
-
-  /**
-   * Helper function to find recursive redirects.
-   *
-   * @param \Drupal\redirect\Entity\Redirect
-   *   The redirect object.
-   * @param string $language
-   *   The language to use.
-   */
-  protected function findByRedirect(Redirect $redirect, $language) {
-    $uri = $redirect->getRedirectUrl();
-    $baseUrl = \Drupal::request()->getBaseUrl();
-    $path = ltrim(substr($uri->toString(), strlen($baseUrl)), '/');
-    $query = $uri->getOption('query') ?: [];
-    return $this->findMatchingRedirect($path, $query, $language);
-  }
-
-  /**
-   * Finds redirects based on the source path.
-   *
-   * @param string $source_path
-   *   The redirect source path (without the query).
-   *
-   * @return \Drupal\redirect\Entity\Redirect[]
-   *   Array of redirect entities.
-   */
-  public function findBySourcePath($source_path) {
-    $ids = $this->manager->getStorage('domain_path')->getQuery()
-      ->condition('redirect_source.path', $source_path, 'LIKE')
-      ->execute();
-    return $this->manager->getStorage('domain_path')->loadMultiple($ids);
   }
 
   /**
