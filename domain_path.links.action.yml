@@ -3,4 +3,3 @@ entity.domain_path_add:
   title: 'Add Domain path'
   appears_on:
     - entity.domain_path.collection
-    - entity.domain_path.canonical

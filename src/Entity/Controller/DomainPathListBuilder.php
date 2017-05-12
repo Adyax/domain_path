@@ -58,12 +58,6 @@ class DomainPathListBuilder extends EntityListBuilder {
    * buildHeader() and buildRow() implementations.
    */
   public function render() {
-    $build['description'] = [
-      '#markup' => $this->t('You can manage the fields on the <a href="@adminlink">Domain path admin page</a>.', [
-        '@adminlink' => $this->urlGenerator->generateFromRoute('entity.domain_path_settings'),
-      ]),
-    ];
-
     $build['table'] = parent::render();
 
     return $build;

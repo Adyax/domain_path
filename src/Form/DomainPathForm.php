@@ -65,7 +65,7 @@ class DomainPathForm extends ContentEntityForm {
 
     $alias_check = rtrim(trim($alias), " \\/");
     if ($alias_check && $alias_check[0] !== '/') {
-      $form_state->setErrorByName('alias', t('Domain path "%alias" needs to start with a slash.', ['%alias' => $alias_check]));
+      $form_state->setErrorByName('alias', $this->t('Domain path "%alias" needs to start with a slash.', ['%alias' => $alias_check]));
     }
 
     if ($domain_path_entity_data = $domain_path_loader->loadByProperties(['alias' => $alias])) {
@@ -75,7 +75,7 @@ class DomainPathForm extends ContentEntityForm {
         if ($check_entity_id != $entity_id
           && $check_domain_id == $domain_id) {
           $domain_path = $domains[$domain_id]->getPath();
-          $form_state->setErrorByName('alias', t('Domain path %path matches an existing domain path alias for %domain_path.', ['%path' => $alias, '%domain_path' => $domain_path]));
+          $form_state->setErrorByName('alias', $this->t('Domain path %path matches an existing domain path alias for %domain_path.', ['%path' => $alias, '%domain_path' => $domain_path]));
         }
       }
     }

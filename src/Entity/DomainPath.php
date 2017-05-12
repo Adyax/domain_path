@@ -34,6 +34,7 @@ use Drupal\Core\Url;
  *   },
  *   base_table = "domain_path",
  *   admin_permission = "administer domain path entity",
+ *   fieldable = FALSE,
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
@@ -45,11 +46,10 @@ use Drupal\Core\Url;
  *   },
  *   links = {
  *     "canonical" = "/domain_path/{domain_path}",
- *     "edit-form" = "/domain_path/{domain_path}/edit",
- *     "delete-form" = "/domain_path/{domain_path}/delete",
- *     "collection" = "/domain_path/list"
- *   },
- *   field_ui_base_route = "entity.domain_path_settings",
+ *     "edit-form" = "/admin/config/domain_path/{domain_path}/edit",
+ *     "delete-form" = "/admin/config/domain_path/{domain_path}/delete",
+ *     "collection" = "/admin/config/domain_path"
+ *   }
  * )
  */
 class DomainPath extends ContentEntityBase  implements DomainPathInterface {

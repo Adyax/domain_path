@@ -1,20 +1,8 @@
+domain_path.admin:
+  title: Domain Path List
+  route_name: entity.domain_path.collection
+  base_route: entity.domain_path.collection
 domain_path.settings_tab:
+  title: Domain Path Settings
   route_name: entity.domain_path_settings
-  title: Settings
-  base_route: entity.domain_path_settings
-
-domain_path.view:
-  route_name: entity.domain_path.canonical
-  base_route: entity.domain_path.canonical
-  title: View
-
-domain_path.page_edit:
-  route_name: entity.domain_path.edit_form
-  base_route: entity.domain_path.canonical
-  title: Edit
-
-domain_path.delete_confirm:
-  route_name:  entity.domain_path.delete_form
-  base_route:  entity.domain_path.canonical
-  title: Delete
-  weight: 10
+  base_route: entity.domain_path.collection
