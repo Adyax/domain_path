@@ -24,11 +24,16 @@ class DomainPathAccess {
    * @return \Drupal\Core\Access\AccessResult
    */
   public function access() {
+/*    $node = \Drupal::routeMatch()->getParameter('node');
+    $entity_type = \Drupal::routeMatch()->getParameter('entity_type');*/
+
+    $domain = \Drupal::routeMatch()->getParameter('domain');
+    $domain_current = \Drupal::service('domain.negotiator')->getActiveDomain();
     $current_path = \Drupal::service('path.current')->getPath();
     $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
     $path_alias = \Drupal::service('path.alias_manager')->getAliasByPath($current_path, $language);
-    if ($path_alias) {
+    if ($domain === $domain_current->id() && $path_alias) {
       return AccessResult::allowed();
     }
     return AccessResult::forbidden();
