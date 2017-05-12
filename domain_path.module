@@ -14,15 +14,19 @@ use Drupal\Core\Entity\EntityInterface;
  */
 function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $user = \Drupal::currentUser();
-  if (isset($form['domain'])) {
-    //$form['domain']['#group'] = 'additional_settings';
-  }
 
   $form['domain_path'] = [
     '#tree' => TRUE,
-    '#title' => t('Domain-specific paths'),
     '#type' => 'details',
-    '#group' => 'additional_settings',
+    '#title' => t('Domain-specific paths'),
+    '#group' => 'advanced',
+    '#attributes' => [
+      'class' => ['node-form-options']
+    ],
+    '#attached' => [
+      'library' => ['node/drupal.node'],
+    ],
+    '#weight' => 110,
     '#access' => $user->hasPermission('edit domain path entity'),
   ];
 
