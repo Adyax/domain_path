@@ -61,3 +61,4 @@ domain_path.view:
   requirements:
     node: \d+
     _entity_access: 'node.view'
+    _custom_access:  '\Drupal\domain_path\DomainPathAccess::access'
