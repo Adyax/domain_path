@@ -10,6 +10,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\domain_path\DomainPathInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Url;
 
 /**
@@ -171,6 +172,36 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
+    parent::postSave($storage, $update);
+
+    if (\Drupal::moduleHandler()->moduleExists('path')) {
+      \Drupal::service('path.alias_storage')->save($this->getSource() , $this->get('alias')->value, $this->get('language')->value);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function preDelete(EntityStorageInterface $storage, array $entities) {
+    parent::preDelete($storage, $entities);
+
+    // Ensure that all nodes deleted are removed from the search index.
+    if (\Drupal::moduleHandler()->moduleExists('path')) {
+      foreach ($entities as $entity) {
+        $conditions = [
+          'source' => $entity->getSource(),
+          'langcode' => $entity->get('language')->value,
+        ];
+        \Drupal::service('path.alias_storage')->delete($conditions);
+      }
+    }
+  }
+
+
+  /**
    * Gets the source base URL.
    *
    * @return string
@@ -184,5 +215,14 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
       'entity_type' => $entity_type,
       'node' => $nid
     ]);
+  }
+
+  /**
+   * Get system path for domain_path source
+   *
+   * @return string
+   */
+  public function getSource() {
+    return '/domain_path/' . $this->get('domain_id')->target_id . '/' . $this->get('entity_type')->value . '/' . $this->get('entity_id')->target_id;
   }
 }

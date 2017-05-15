@@ -32,7 +32,7 @@ class DomainPathAccess {
     $current_path = \Drupal::service('path.current')->getPath();
     $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
 
-    $path_alias = \Drupal::service('path.alias_manager')->getAliasByPath($current_path, $language);
+    $path_alias = \Drupal::service('path.alias_storage')->lookupPathAlias($current_path, $language);
     if ($domain === $domain_current->id() && $path_alias) {
       return AccessResult::allowed();
     }

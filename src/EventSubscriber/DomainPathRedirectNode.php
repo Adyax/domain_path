@@ -18,7 +18,7 @@ use Drupal\Core\Path\AliasManager;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
-use Drupal\redirect\Exception\RedirectLoopException;
+use Drupal\domain_path\Exception\DomainPathRedirectLoopException;
 use Drupal\domain_path\DomainPathRepository;
 
 use Symfony\Component\HttpFoundation\Response;
@@ -161,10 +161,9 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
 
       // TODO: enable for all entities types
       $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());
-
     }
-    catch (RedirectLoopException $e) {
-      \Drupal::logger('redirect')->warning($e->getMessage());
+    catch (DomainPathRedirectLoopException $e) {
+      \Drupal::logger('domain_path')->warning($e->getMessage());
       $response = new Response();
       $response->setStatusCode(503);
       $response->setContent('Service unavailable');

@@ -1,8 +1,12 @@
 <?php
 
+/**
+ * @file
+ * Contains \Drupal\domain_path\Exception\DomainPathRedirectLoopException
+ */
+
 namespace Drupal\domain_path\Exception;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Component\Render\FormattableMarkup;
 
 /**
@@ -19,7 +23,7 @@ class DomainPathRedirectLoopException extends \RuntimeException {
    *   The redirect ID that is involved in a loop.
    */
   public function __construct($domain_id, $entity_type, $id) {
-    parent::__construct(FormattableMarkup::placeholderFormat('Redirect loop identified at %entity_type for redirect %id on domain %domain', ['%entity_type' => $entity_type, '%id' => $id, '%domain' => $domain_id]));
+    parent::__construct(new FormattableMarkup('Redirect loop identified for %entity_type nid:%id on domain:%domain', ['%entity_type' => $entity_type, '%id' => $id, '%domain' => $domain_id]));
   }
 
 }

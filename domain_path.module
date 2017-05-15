@@ -231,7 +231,6 @@ function _domain_path_node_form_submit($form, FormStateInterface $form_state) {
           $domain_path_entity->set($field, $value);
         }
         $domain_path_entity->save();
-        \Drupal::service('path.alias_storage')->save('/domain_path/' . $properties_map['domain_id'] . '/node/' . $nid , $properties_map['alias'], $properties_map['language']);
       }
       else {
         $domain_path_entity = reset($domain_path_entity_data);
