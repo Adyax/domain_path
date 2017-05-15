@@ -10,6 +10,18 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\EntityInterface;
 
 /**
+ * Implements hook_entity_type_alter().
+ *
+ * @var $entity_types \Drupal\Core\Entity\EntityTypeInterface[]
+ */
+function domain_path_entity_type_alter(array &$entity_types) {
+  // Override default pathauto_pattern entity default form class.
+  if (!empty($entity_types['pathauto_pattern'])) {
+    $entity_types['pathauto_pattern']->setFormClass('default', '\Drupal\domain_path\Form\DomainPathPatternEditForm');
+  }
+}
+
+/**
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
