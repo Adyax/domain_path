@@ -22,6 +22,27 @@ function domain_path_entity_type_alter(array &$entity_types) {
 }
 
 /**
+ * Implements hook_field_widget_info_alter().
+ */
+function domain_path_field_widget_info_alter(&$widgets) {
+  if (!empty($widgets['path'])) {
+    $widgets['path']['class'] = '\Drupal\domain_path\DomainPathPathautoWidget';
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function domain_path_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'field_widget_info_alter') {
+    // Move domain_path_field_widget_info_alter() to the end of the list.
+    $group = $implementations['domain_path'];
+    unset($implementations['domain_path']);
+    $implementations['domain_path'] = $group;
+  }
+}
+
+/**
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function domain_path_form_node_form_alter(&$form, FormStateInterface $form_state, $form_id) {
