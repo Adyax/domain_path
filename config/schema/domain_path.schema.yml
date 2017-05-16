@@ -1,0 +1,8 @@
+domain_path.settings:
+  type: config_object
+  mapping:
+    entity_types:
+      label: Enabled entity types for domain paths
+      type: sequence
+      sequence:
+        type: string
