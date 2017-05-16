@@ -12,6 +12,7 @@ use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\pathauto\PathautoGeneratorInterface;
 use Drupal\domain_path\DomainPathLoaderInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -46,6 +47,11 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
   protected $domainPathLoaderManager;
 
   /**
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactoryManager;
+
+  /**
    * DomainPathPathautoWidget constructor.
    *
    * @param string $plugin_id
@@ -58,14 +64,16 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
    * @param \Drupal\Core\Session\AccountInterface $account_manager
    * @param \Drupal\pathauto\PathautoGeneratorInterface $pathauto_generator_manager
    * @param \Drupal\domain_path\DomainPathLoaderInterface $domain_path_loader_manager
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory_manager
    */
-  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, DomainLoaderInterface $domain_loader_manager, AliasManagerInterface $alias_manager, AccountInterface $account_manager, PathautoGeneratorInterface $pathauto_generator_manager, DomainPathLoaderInterface $domain_path_loader_manager) {
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, DomainLoaderInterface $domain_loader_manager, AliasManagerInterface $alias_manager, AccountInterface $account_manager, PathautoGeneratorInterface $pathauto_generator_manager, DomainPathLoaderInterface $domain_path_loader_manager, ConfigFactoryInterface $config_factory_manager) {
     parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
     $this->domainLoaderManager = $domain_loader_manager;
     $this->aliasManager = $alias_manager;
     $this->accountManager = $account_manager;
     $this->pathautoGeneratorManager = $pathauto_generator_manager;
     $this->domainPathLoaderManager = $domain_path_loader_manager;
+    $this->configFactoryManager = $config_factory_manager->get('domain_path.settings');
   }
 
   /**
@@ -82,7 +90,8 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
       $container->get('path.alias_manager'),
       $container->get('current_user'),
       $container->get('pathauto.generator'),
-      $container->get('domain_path.loader')
+      $container->get('domain_path.loader'),
+      $container->get('config.factory')
     );
   }
 
@@ -92,6 +101,14 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
   public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state) {
     $element = parent::formElement($items, $delta, $element, $form, $form_state);
     $entity = $items->getEntity();
+    $entity_type = $entity->getEntityTypeId();
+    $config = $this->configFactoryManager;
+    $enabled_entity_types = $config->get('entity_types');
+    $enabled_entity_types = array_filter($enabled_entity_types);
+
+    if (empty($enabled_entity_types[$entity_type])) {
+      return $element;
+    }
 
     $pattern = $this->pathautoGeneratorManager->getPatternByEntity($entity);
     if (empty($pattern)) {
@@ -99,7 +116,6 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
     }
 
     if ($domains = $this->domainLoaderManager->loadMultipleSorted()) {
-      $entity_type = $entity->getEntityTypeId();
       $entity_id = $entity->id();
       $langcode = $entity->get('langcode')->value;
       //$current = $entity_type && $entity_id ? $this->aliasManager->getAliasByPath("/$entity_type/$entity_id") : t('<none>');
