@@ -100,7 +100,7 @@ class DomainPathPatternEditForm extends PatternEditForm {
 
     $alias_type = $entity->getAliasType();
     if ($alias_type->getDerivativeId() && $this->entityTypeManager->hasDefinition($alias_type->getDerivativeId())) {
-      $entity_type = $alias_type->getDerivativeId();
+      //$entity_type = $alias_type->getDerivativeId();
       // First, remove domain condition.
       foreach ($entity->getSelectionConditions() as $condition_id => $condition) {
         if (in_array($condition->getPluginId(), ['domain'])) {
@@ -110,18 +110,18 @@ class DomainPathPatternEditForm extends PatternEditForm {
 
       if ($domains = array_filter((array) $form_state->getValue('domains'))) {
         $default_weight -= 5;
-        $domain_mapping = $entity_type . ':' . $this->entityTypeManager->getDefinition($entity_type)->getKey('langcode') . ':language' . ':domain';
+        //$domain_mapping = $entity_type . ':' . $this->entityTypeManager->getDefinition($entity_type)->getKey('langcode') . ':language' . ':domain';
         $entity->addSelectionCondition(
           [
             'id' => 'domain',
             'domains' => $domains,
             'negate' => FALSE,
-            'context_mapping' => [
-              'entity:domain' => $domain_mapping,
-            ]
+//            'context_mapping' => [
+//              'entity:domain' => $domain_mapping,
+//            ]
           ]
         );
-        $entity->addRelationship($domain_mapping, t('Domain'));
+        //$entity->addRelationship($domain_mapping, t('Domain'));
       }
 
     }
