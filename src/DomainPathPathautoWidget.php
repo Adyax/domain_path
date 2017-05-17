@@ -110,15 +110,14 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
       return $element;
     }
 
-    $pattern = $this->pathautoGeneratorManager->getPatternByEntity($entity);
-    if (empty($pattern)) {
+    //$pattern = $this->pathautoGeneratorManager->getPatternByEntity($entity);
+    //if (empty($pattern)) {
       //return $element;
-    }
+    //}
 
     if ($domains = $this->domainLoaderManager->loadMultipleSorted()) {
       $entity_id = $entity->id();
-      $langcode = $entity->get('langcode')->value;
-      //$current = $entity_type && $entity_id ? $this->aliasManager->getAliasByPath("/$entity_type/$entity_id") : t('<none>');
+      $langcode = $entity->language()->getId();
       $show_delete = FALSE;
       $domain_path_loader = $this->domainPathLoaderManager;
 
@@ -162,6 +161,7 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
           '#type' => 'textfield',
           '#title' => Html::escape(rtrim($domain->getPath(), '/')),
           '#default_value' => $path ? $path : $default,
+          //'#element_validate' => ['pathauto_pattern_validate'],
           '#access' => $this->accountManager->hasPermission('edit domain path entity'),
         ];
       }
@@ -176,6 +176,16 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
   public static function validateFormElement(array &$element, FormStateInterface $form_state) {
     //TODO: refactor this method later
     parent::validateFormElement($element, $form_state);
+    if ($errors = $form_state->getErrors()) {
+      foreach ($errors as $name => $error) {
+        if ($name == 'path][0' && isset($element['alias'])) {
+          $form_state->clearErrors();
+          $form_state->setError($element['alias'], $error);
+          break;
+        }
+      }
+      return;
+    }
 
     $entity = $form_state->getFormObject()->getEntity();
     $entity_id = $entity->id();
@@ -195,20 +205,36 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
         $form_state->setError($element['domain_path'][$key], t('Domain path "%path" matches the default path alias. You may leave the element blank.', ['%path' => $path]));
       }
       elseif (!empty($path)) {
-        $path_value = rtrim(trim($path), " \\/");
-        if ($path_value && $path_value[0] !== '/') {
-          $form_state->setError($element['domain_path'][$key], t('Domain path "%path" needs to start with a slash.', ['%path' => $path]));
-        }
-        if (!empty($entity_id) && $domain_path_entity_data = $domain_path_loader->loadByProperties(['alias' => $path])) {
-          foreach ($domain_path_entity_data as $domain_path_entity) {
-            $check_entity_id = $domain_path_entity->get('entity_id')->target_id;
-            $check_domain_id = $domain_path_entity->get('domain_id')->target_id;
-            if ($check_entity_id != $entity_id
-              && $check_domain_id == $key) {
-              $domain_path = $domains[$domain_id]->getPath();
-              $form_state->setError($element['domain_path'][$key], t('Domain path %path matches an existing domain path alias for %domain_path.', ['%path' => $path, '%domain_path' => $domain_path]));
-            }
-          }
+        self::validateDomainPathValue($form_state, $domain_path_loader, $element, $domains, $domain_id, $entity_id, $path, $key);
+      }
+    }
+  }
+
+  /**
+   * Validate handler for domain path value.
+   *
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   * @param \Drupal\domain_path\DomainPathLoaderInterface $domain_path_loader
+   * @param $element
+   * @param $domains
+   * @param $domain_id
+   * @param $entity_id
+   * @param $path
+   * @param $key
+   */
+  public static function validateDomainPathValue(FormStateInterface $form_state, DomainPathLoaderInterface $domain_path_loader, $element, $domains, $domain_id, $entity_id, $path, $key) {
+    $path_value = rtrim(trim($path), " \\/");
+    if ($path_value && $path_value[0] !== '/') {
+      $form_state->setError($element['domain_path'][$key], t('Domain path "%path" needs to start with a slash.', ['%path' => $path]));
+    }
+    if (!empty($entity_id) && $domain_path_entity_data = $domain_path_loader->loadByProperties(['alias' => $path])) {
+      foreach ($domain_path_entity_data as $domain_path_entity) {
+        $check_entity_id = $domain_path_entity->get('entity_id')->target_id;
+        $check_domain_id = $domain_path_entity->get('domain_id')->target_id;
+        if ($check_entity_id != $entity_id
+          && $check_domain_id == $key) {
+          $domain_path = $domains[$domain_id]->getPath();
+          $form_state->setError($element['domain_path'][$key], t('Domain path %path matches an existing domain path alias for %domain_path.', ['%path' => $path, '%domain_path' => $domain_path]));
         }
       }
     }
