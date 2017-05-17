@@ -174,7 +174,6 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
    * {@inheritdoc}
    */
   public static function validateFormElement(array &$element, FormStateInterface $form_state) {
-    //TODO: refactor this method later
     parent::validateFormElement($element, $form_state);
     if ($errors = $form_state->getErrors()) {
       foreach ($errors as $name => $error) {
