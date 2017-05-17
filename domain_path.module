@@ -44,31 +44,47 @@ function domain_path_module_implements_alter(&$implementations, $hook) {
 /**
  * Implements hook_form_alter().
  */
-function domain_path_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  //TODO: refactor this function later
-  $form_object = $form_state->getFormObject();
-  if (!method_exists($form_object, 'getEntity')) {
-    return;
+function domain_path_form_alter(&$form, &$form_state, $form_id) {
+  if (($object = $form_state->getFormObject()) && !empty($object)
+    && is_callable([$object, 'getEntity']) && ($entity = $object->getEntity())) {
+    _domain_path_process_entities_edit_form($form, $form_state, $form_id, $entity);
   }
+}
 
+/**
+ * Helper function for processing entities edit form.
+ *
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ * @param $entity
+ */
+function _domain_path_process_entities_edit_form(&$form, &$form_state, $form_id, $entity) {
   $config = \Drupal::config('domain_path.settings');
   $enabled_entity_types = $config->get('entity_types');
   $enabled_entity_types = array_filter($enabled_entity_types);
   if ($enabled_entity_types) {
-
-    $entity = $form_object->getEntity();
     $entity_type = $entity->getEntityTypeId();
     $entity_bundle = $entity->bundle();
     $form_id_pattern = $entity_type . '_' . $entity_bundle . '_';
     foreach (array_keys($enabled_entity_types) as $enabled_entity_type) {
       if ($entity_type == $enabled_entity_type && strpos($form_id, $form_id_pattern) !== FALSE) {
-        if (!empty($form['actions'])) {
-          foreach (array_keys($form['actions']) as $action) {
-            if (isset($form['actions'][$action]['#submit'])) {
-              $form['actions'][$action]['#submit'][] = '_domain_path_entity_form_submit';
-            }
-          }
-        }
+        _domain_path_attach_entities_common_submit($form);
+      }
+    }
+  }
+}
+
+/**
+ * Helper function for attach common submit handler to entities edit form.
+ *
+ * @param $form
+ */
+function _domain_path_attach_entities_common_submit(&$form) {
+  if (!empty($form['actions'])) {
+    foreach (array_keys($form['actions']) as $action) {
+      if (isset($form['actions'][$action]['#submit'])) {
+        $form['actions'][$action]['#submit'][] = '_domain_path_entity_form_submit';
       }
     }
   }
@@ -94,22 +110,17 @@ function domain_path_entity_translation_delete(EntityInterface $translation) {
  * @param \Drupal\Core\Entity\EntityInterface $entity
  */
 function _domain_path_delete_domain_path_entities(EntityInterface $entity) {
-  $entity_type = $entity->getEntityTypeId();
+  $domain_path_loader = \Drupal::service('domain_path.loader');
+  $properties_map = [
+    'entity_type' => $entity->getEntityTypeId(),
+    'entity_id' => $entity->id(),
+    'language' => $entity->language()->getId(),
+  ];
+  $domain_path_entities = $domain_path_loader->loadByProperties($properties_map);
 
-  if ($entity_type == 'node') {
-    $domain_path_loader = \Drupal::service('domain_path.loader');
-    $properties_map = [
-      'entity_type' => $entity_type,
-      'entity_id' => $entity->id(),
-      'language' => $entity->language(),
-    ];
-
-    $domain_path_entities = $domain_path_loader->loadByProperties($properties_map);
-
-    if ($domain_path_entities) {
-      foreach ($domain_path_entities as $domain_path_entity) {
-        $domain_path_entity->delete();
-      }
+  if ($domain_path_entities) {
+    foreach ($domain_path_entities as $domain_path_entity) {
+      $domain_path_entity->delete();
     }
   }
 }
@@ -123,7 +134,7 @@ function _domain_path_delete_domain_path_entities(EntityInterface $entity) {
 function _domain_path_entity_form_submit($form, FormStateInterface $form_state) {
   $entity = $form_state->getFormObject()->getEntity();
   $entity_id = $entity->id();
-  $langcode = $entity->get('langcode')->value;
+  $langcode = $entity->language()->getId();
   $entity_type = $entity->getEntityTypeId();
   $properties = [
     'entity_id' => $entity_id,
