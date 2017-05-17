@@ -103,8 +103,6 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
         ],
         'weight' => -7,
       ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
 
     // Name field for the domain path.
@@ -127,8 +125,6 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
         'type' => 'string_textfield',
         'weight' => -5,
       ))
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
 
     $fields['language'] = BaseFieldDefinition::create('language')
@@ -164,8 +160,6 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
         ],
         'weight' => -4,
       ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE)
       ->setRequired(TRUE);
 
     return $fields;
