@@ -146,6 +146,7 @@ function _domain_path_entity_form_submit($form, FormStateInterface $form_state) 
   $domain_path_values = isset($path_values[0]['domain_path']) ? $path_values[0]['domain_path'] : [];
 
   $domain_path_loader = \Drupal::service('domain_path.loader');
+  $generator = \Drupal::service('domain_path.generator');
 
   // If not set to revert, then save changes.
   if (empty($domain_path_values['domain_path_delete'])) {
@@ -153,6 +154,16 @@ function _domain_path_entity_form_submit($form, FormStateInterface $form_state) 
     foreach ($domain_path_values as $domain_id => $alias) {
       $properties['domain_id'] = $domain_id;
       $domain_path_entity_data = $domain_path_loader->loadByProperties($properties);
+
+      // generate new alias for domain by pathauto
+      if ($path_values[0]['pathauto'] == 1) {
+
+        $generator->setDomainId($domain_id);
+        $alias = $generator->createEntityAlias($entity, 'return');
+
+        //$pattern = $generator->getPatternByEntity($entity, $domain_id);
+        //$alias = $pattern->
+      }
 
       if (!$alias) {
         if ($domain_path_entity_data) {
