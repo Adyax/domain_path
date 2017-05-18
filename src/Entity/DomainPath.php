@@ -137,30 +137,10 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
       ->setDescription(t('The entity type of the Domain path entity.'));
 
     // Owner field of the Domain path.
-    // Entity reference field, holds the reference to the node object.
-    // The view shows the title field of the node.
-    // The form presents a auto complete field for the node title.
+    // Entity reference field, holds the reference to the entity object.
     $fields['entity_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Entity Id'))
-      ->setDescription(t('The Title of the associated node.'))
-      ->setSetting('target_type', 'node')
-      ->setSetting('handler', 'default')
-      ->setDisplayOptions('view', [
-        'label' => 'above',
-        'type' => 'entity_reference_label',
-        'weight' => -4,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'entity_reference_autocomplete',
-        'settings' => [
-          'match_operator' => 'CONTAINS',
-          'size' => 60,
-          'autocomplete_type' => 'tags',
-          'placeholder' => '',
-        ],
-        'weight' => -4,
-      ])
-      ->setRequired(TRUE);
+      ->setDescription(t('The Id of the associated entity.'));
 
     return $fields;
   }

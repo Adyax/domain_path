@@ -20,31 +20,94 @@ class DomainPathForm extends ContentEntityForm {
     /* @var $entity \Drupal\domain_path\Entity\DomainPath */
     $form = parent::buildForm($form, $form_state);
     $options = [];
-    $langcode = NULL;
+    $langcode = Language::LANGCODE_NOT_SPECIFIED;
     $language_manager = \Drupal::service('language_manager');
 
     foreach ($language_manager->getLanguages() as $language) {
       $options[$language->getId()] = $language->getName();
     }
 
+    $default_target_entity_type = NULL;
+    $ref_entity = NULL;
+
     if ($entity = $this->entity) {
+      $default_target_entity_type = $entity->get('entity_type')->value;
+      if ($default_target_entity_type) {
+        $entity_type_storage = $this->entityTypeManager->getStorage($default_target_entity_type);
+        $ref_entity_id = $entity->get('entity_id')->target_id;
+        $ref_entity = $ref_entity_id ? $entity_type_storage->load($ref_entity_id) : NULL;
+      }
       $langcode = $entity->get('language')->value;
     }
 
     $form['language'] = [
       '#title' => $this->t('Language'),
       '#type' => 'language_select',
-      '#default_value' => isset($options[$langcode]) ? $options[$langcode] : NULL,
-      '#languages' => Language::STATE_ALL,
       '#options' => $options,
+      '#default_value' => $langcode,
+      '#languages' => Language::STATE_ALL,
     ];
+
+    $entity_type_options = [];
+    $config = \Drupal::config('domain_path.settings');
+    $enabled_entity_types = $config->get('entity_types');
+    $enabled_entity_types = array_filter($enabled_entity_types);
+    if ($enabled_entity_types) {
+      $default_target_entity_type = !empty($default_target_entity_type) ? $default_target_entity_type : key($enabled_entity_types);
+      $entity_types_info = $this->entityTypeManager->getDefinitions();
+      foreach (array_keys($enabled_entity_types) as $enabled_entity_type) {
+        $entity_type_options[$enabled_entity_type] = $entity_types_info[$enabled_entity_type]->getLabel();
+      }
+    }
 
     $form['entity_type'] = [
-      '#type' => 'hidden',
-      '#value' => 'node',
+      '#title' => $this->t('Entity type'),
+      '#type' => 'select',
+      '#options' => $entity_type_options,
+      '#default_value' => $default_target_entity_type,
+      '#required' => TRUE,
+      '#limit_validation_errors' => [['entity_type']],
+      '#submit' => ['::submitSelectEntityType'],
+      '#executes_submit_callback' => TRUE,
+      '#ajax' => [
+        'callback' => '::ajaxReplaceTargetType',
+        'wrapper' => 'domain-path-entity-id-wrapper',
+        'method' => 'replace',
+      ],
     ];
 
+    if ($entity_type_options) {
+      $entity_type_value = $form_state->getValue('entity_type');
+      if ($entity_type_value) {
+        $ref_entity = !empty($ref_entity) && $default_target_entity_type == $entity_type_value ? $ref_entity : NULL;
+      }
+
+      $form['entity_id'] = [
+        '#prefix' => '<div id="domain-path-entity-id-wrapper">',
+        '#suffix' => '</div>',
+        '#type' => 'entity_autocomplete',
+        '#target_type' => $entity_type_value ? $entity_type_value : $default_target_entity_type,
+        '#title' => $this->t('Entity Id'),
+        '#default_value' => $ref_entity,
+        '#required' => TRUE,
+      ];
+    }
+
     return $form;
+  }
+
+  /**
+   * Handles switching the entity type selector.
+   */
+  public function ajaxReplaceTargetType(&$form, FormStateInterface $form_state) {
+    return $form['entity_id'];
+  }
+
+  /**
+   * Handles submit call when entity type is selected.
+   */
+  public function submitSelectEntityType($form, FormStateInterface $form_state) {
+    $form_state->setRebuild();
   }
 
   /**
@@ -53,7 +116,6 @@ class DomainPathForm extends ContentEntityForm {
   public function validateForm(array &$form, FormStateInterface $form_state) {
     // Validation is optional.
     parent::validateForm($form, $form_state);
-    //$entity = $this->entity;
     $domains = \Drupal::service('domain.loader')->loadMultipleSorted();
     $domain_id_value = $form_state->getValue('domain_id');
     $domain_id = isset($domain_id_value[0]['target_id']) ? $domain_id_value[0]['target_id'] : NULL;
