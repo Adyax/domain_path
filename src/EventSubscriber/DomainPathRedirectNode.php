@@ -133,8 +133,14 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
   */
   public function redirectNode(GetResponseEvent $event) {
     $request = clone $event->getRequest();
+    $domain = $this->domain_negotiator->getActiveDomain();
 
     if (!$this->checker->canRedirect($request)) {
+      return;
+    }
+
+    // no need to redirect. default domain is controlled by redirect module.
+    if ($domain->isDefault()) {
       return;
     }
 
@@ -157,7 +163,7 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
 
     try {
       $node = \Drupal::routeMatch()->getParameter('node');
-      $domain = $this->domain_negotiator->getActiveDomain();
+
 
       // TODO: enable for all entities types
       $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());

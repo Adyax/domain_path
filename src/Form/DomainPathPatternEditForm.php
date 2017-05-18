@@ -2,6 +2,7 @@
 
 namespace Drupal\domain_path\Form;
 
+use Drupal\pathauto\Entity\PathautoPattern;
 use Drupal\pathauto\Form\PatternEditForm;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -15,6 +16,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Edit form for pathauto patterns.
  */
 class DomainPathPatternEditForm extends PatternEditForm {
+
+  protected $domain_path_property = 'domains';
 
   /**
    * @var \Drupal\domain\DomainLoaderInterface
@@ -62,12 +65,14 @@ class DomainPathPatternEditForm extends PatternEditForm {
 
       // Expose domain conditions.
       if ($alias_type->getDerivativeId() && $entity_type = $this->entityTypeManager->getDefinition($alias_type->getDerivativeId())) {
-        $default_domains = [];
-        foreach ($this->entity->getSelectionConditions() as $condition_id => $condition) {
+        $default_domains = $this->entity->getThirdPartySetting('domain_path', $this->domain_path_property);
+
+
+        /*foreach ($this->entity->getSelectionConditions() as $condition_id => $condition) {
           if ($condition->getPluginId() == 'domain') {
             $default_domains = $condition->getConfiguration()['domains'];
           }
-        }
+        }*/
 
         if ($domains = $this->domainLoaderManager->loadMultipleSorted()) {
           $domain_options = [];
@@ -85,7 +90,29 @@ class DomainPathPatternEditForm extends PatternEditForm {
       }
     }
 
+    $form['#entity_builders'][] = [$this, 'entityBuilder'];
+
+
     return $form;
+  }
+
+  public function entityBuilder( $entity_type,
+                                 PathautoPattern $language,
+                                 &$form,
+                                 \Drupal\Core\Form\FormStateInterface $form_state) {
+    //If our property can be found from form_state values
+    if ($form_state->getValue($this->domain_path_property)) {
+      //We can update the linked property on thirdPartySetting
+      $language->setThirdPartySetting(
+        'domain_path',
+        $this->domain_path_property,
+        $form_state->getValue($this->domain_path_property)
+      );
+    }else{
+      //User surely wanted to remove the previous value,
+      //so remove it from thirdPartySetting property too
+      $language->unsetThirdPartySetting('domain_path', $this->domain_path_property);
+    }
   }
 
   /**
@@ -102,7 +129,7 @@ class DomainPathPatternEditForm extends PatternEditForm {
     if ($alias_type->getDerivativeId() && $this->entityTypeManager->hasDefinition($alias_type->getDerivativeId())) {
       //$entity_type = $alias_type->getDerivativeId();
       // First, remove domain condition.
-      foreach ($entity->getSelectionConditions() as $condition_id => $condition) {
+      /*foreach ($entity->getSelectionConditions() as $condition_id => $condition) {
         if (in_array($condition->getPluginId(), ['domain'])) {
           $entity->removeSelectionCondition($condition_id);
         }
@@ -122,7 +149,7 @@ class DomainPathPatternEditForm extends PatternEditForm {
           ]
         );
         //$entity->addRelationship($domain_mapping, t('Domain'));
-      }
+      }*/
 
     }
 
