@@ -151,7 +151,7 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
   public function postSave(EntityStorageInterface $storage, $update = TRUE) {
     parent::postSave($storage, $update);
 
-    if (\Drupal::moduleHandler()->moduleExists('path') && !$this->domain_id->entity->isDefault()) {
+    if (\Drupal::moduleHandler()->moduleExists('path') /*&& !$this->domain_id->entity->isDefault()*/) {
       \Drupal::service('path.alias_storage')->save($this->getSource() , $this->get('alias')->value, $this->get('language')->value);
     }
   }
@@ -186,7 +186,7 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
     $entity_type = 'node';
     $nid = $this->get('entity_id')->get(0)->getValue()['target_id'];
 
-    if (!$this->domain_id->entity->isDefault()) {
+    /*if (!$this->domain_id->entity->isDefault()) {
       $url = Url::fromRoute('domain_path.view', [
         'domain' => $domain_id,
         'entity_type' => $entity_type,
@@ -195,7 +195,13 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
     }
     else {
       $url = $this->entity_id->entity->toUrl();
-    }
+    }*/
+
+    $url = Url::fromRoute('domain_path.view', [
+      'domain' => $domain_id,
+      'entity_type' => $entity_type,
+      'node' => $nid
+    ]);
 
     return $url;
   }
@@ -207,5 +213,14 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
    */
   public function getSource() {
     return '/domain_path/' . $this->get('domain_id')->target_id . '/' . $this->get('entity_type')->value . '/' . $this->get('entity_id')->target_id;
+  }
+
+  /**
+   * Get system path for domain_path source
+   *
+   * @return string
+   */
+  public function getAlias() {
+    return $this->get('alias')->value;
   }
 }

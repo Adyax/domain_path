@@ -140,10 +140,11 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
     }
 
     // no need to redirect. default domain is controlled by redirect module.
-    if ($domain->isDefault()) {
+    /*if ($domain->isDefault()) {
       return;
-    }
+    }*/
 
+    // todo: add term/user routes
     // This is necessary because this also gets called on
     // node sub-tabs such as "edit", "revisions", etc.  This
     // prevents those pages from redirected.

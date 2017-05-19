@@ -17,6 +17,7 @@ function domain_path_entity_type_alter(array &$entity_types) {
   // Override default pathauto_pattern entity default form class.
   if (!empty($entity_types['pathauto_pattern'])) {
     $entity_types['pathauto_pattern']->setFormClass('default', '\Drupal\domain_path\Form\DomainPathPatternEditForm');
+    $entity_types['pathauto_pattern']->setListBuilderClass('\Drupal\domain_path\DomainPathPathautoListBuilder');
   }
 }
 
@@ -157,12 +158,15 @@ function _domain_path_entity_form_submit($form, FormStateInterface $form_state) 
 
       // generate new alias for domain by pathauto
       if ($path_values[0]['pathauto'] == 1) {
-
         $generator->setDomainId($domain_id);
-        $alias = $generator->createEntityAlias($entity, 'return');
-
-        //$pattern = $generator->getPatternByEntity($entity, $domain_id);
-        //$alias = $pattern->
+        if (!empty($alias)) {
+          $generator->updateEntityAlias($entity, 'update');
+          continue;
+        }
+        else {
+          //$alias = $generator->createEntityAlias($entity, 'return');
+          $alias = $generator->generateEntityAlias($entity);
+        }
       }
 
       if (!$alias) {
@@ -203,6 +207,23 @@ function _domain_path_entity_form_submit($form, FormStateInterface $form_state) 
     $domain_path_entities = $domain_path_loader->loadByProperties($properties);
     foreach ($domain_path_entities as $domain_path_entity) {
       $domain_path_entity->delete();
+    }
+  }
+}
+
+/**
+ * Alter Pathauto-generated aliases before saving.
+ *
+ */
+function domain_path_pathauto_alias_alter(&$alias, array &$context) {
+  // check if there domain_path settings in pattern -
+  // change default alias to prevent duplicates in url_alias table
+  $pattern = $context['pattern'];
+  $domains = $pattern->getThirdPartySetting('domain_path', 'domains');
+  if (!empty($domains)) {
+    // check if one of domains is active
+    if (!empty(array_filter($domains))) {
+      $alias .= '.html';
     }
   }
 }
