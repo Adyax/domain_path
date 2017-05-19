@@ -143,7 +143,7 @@ class DomainPathGenerator extends PathautoGenerator {
       $this->messenger->addMessage($this->t('The automatically generated alias %original_alias conflicted with an existing alias. Alias changed to %alias.', array(
         '%original_alias' => $original_alias,
         '%alias' => $alias,
-      )), $op);
+      )));
     }
 
     return $alias;
