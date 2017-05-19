@@ -163,6 +163,11 @@ class DomainPathPathautoWidget extends PathautoWidget implements ContainerFactor
           '#default_value' => $path ? $path : $default,
           //'#element_validate' => ['pathauto_pattern_validate'],
           '#access' => $this->accountManager->hasPermission('edit domain path entity'),
+          '#states' => [
+            'disabled' => [
+              'input[name="path[' . $delta . '][pathauto]"]' => ['checked' => TRUE]
+            ]
+          ]
         ];
       }
     }

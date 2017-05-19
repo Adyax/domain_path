@@ -2,12 +2,10 @@
 
 namespace Drupal\domain_path;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\Language\Language;
-use Drupal\domain_path\Entity\DomainPath;
-use Drupal\domain_path\Exception\DomainPathRedirectLoopException;
+//use Drupal\domain_path\Exception\DomainPathRedirectLoopException;
 
 class DomainPathRepository {
 
@@ -72,49 +70,7 @@ class DomainPathRepository {
     )->fetchField();
 
     if (!empty($id)) {
-
-      // Check if this is a loop.
-      if (in_array($id, $this->foundRedirects)) {
-        throw new DomainPathRedirectLoopException($domain_id, 'node', $entity_id);
-      }
-      $this->foundRedirects[] = $id;
       $domain_path = $this->load($id);
-      // Find chained redirects.
-      /*if ($recursive = $this->findByRedirect($redirect, $language)) {
-        // Reset found redirects.
-        $this->foundRedirects = [];
-        return $recursive;
-      }*/
-
-      return $domain_path;
-    }
-
-    return NULL;
-  }
-
-  public function findMatchingRedirectByUri($domain_id, $uri, $language = Language::LANGCODE_NOT_SPECIFIED) {
-    // Load redirects by hash. A direct query is used to improve performance.
-    $id = $this->connection->query('SELECT id FROM {domain_path} WHERE domain_id = :domain_id AND language = :language',
-      [
-        ':domain_id' => $domain_id,
-        ':language' => $language,
-      ]
-    )->fetchField();
-
-    if (!empty($id)) {
-
-      // Check if this is a loop.
-      if (in_array($id, $this->foundRedirects)) {
-        throw new DomainPathRedirectLoopException($domain_id, 'none', $entity_id);
-      }
-      $this->foundRedirects[] = $id;
-      $domain_path = $this->load($id);
-      // Find chained redirects.
-      /*if ($recursive = $this->findByRedirect($redirect, $language)) {
-        // Reset found redirects.
-        $this->foundRedirects = [];
-        return $recursive;
-      }*/
 
       return $domain_path;
     }

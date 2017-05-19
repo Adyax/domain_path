@@ -12,10 +12,15 @@ use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\pathauto\PathautoState;
 use Drupal\Component\Utility\Unicode;
 
+/**
+ * Class DomainPathGenerator
+ * @package Drupal\domain_path
+ */
 class DomainPathGenerator extends PathautoGenerator {
 
-  protected $domain;
-
+  /**
+   * @var
+   */
   protected $domain_id;
 
   /**
@@ -25,27 +30,29 @@ class DomainPathGenerator extends PathautoGenerator {
     parent::resetCaches();
   }
 
-
+  /**
+   * Domain to work with
+   *
+   * @param $domain_id
+   */
   public function setDomainId($domain_id) {
     $this->domain_id = $domain_id;
-
-/*    $domain_path_loader = \Drupal::service('domain_path.loader');
-    $properties['domain_id'] = $domain_id;
-    $this->domain = $domain_path_loader->loadByProperties($properties);
-    if ($this->domain) {
-      $this->domain = reset($this->domain);
-    }*/
-    //$this->domain = \Drupal::service('domain_path.loader')->load($this->domain_id);
   }
 
   /**
-   * Loads pathauto patterns for a given entity type ID
+   * Source for domain_path for url_alias table
    *
-   * @param string $entity_type_id
-   *   An entity type ID.
-   *
-   * @return \Drupal\pathauto\PathautoPatternInterface[]
-   *   A list of patterns, sorted by weight.
+   * @param $entity
+   * @return string
+   */
+  protected function getSource($entity) {
+    if (!empty($this->domain_id) && $entity) {
+      return '/domain_path/' . $this->domain_id . '/' . $entity->getEntityTypeId() . '/' . $entity->id();
+    }
+  }
+
+  /**
+   * {@inheritdoc}
    */
   protected function getPatternByEntityType($entity_type_id) {
     if (!isset($this->patternsByEntityType[$this->domain_id][$entity_type_id])) {
@@ -66,11 +73,7 @@ class DomainPathGenerator extends PathautoGenerator {
   }
 
   /**
-   * Load an alias pattern entity by domain, entity, bundle, and language.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   An entity.
-   * @return \Drupal\pathauto\PathautoPatternInterface|null
+   * {@inheritdoc}
    */
   public function getPatternByEntity(EntityInterface $entity) {
     $langcode = $entity->language()->getId();
@@ -89,78 +92,8 @@ class DomainPathGenerator extends PathautoGenerator {
     return $this->patterns[$this->domain_id][$entity->getEntityTypeId()][$entity->id()][$langcode];
   }
 
-  public function generateEntityAlias(EntityInterface $entity) {
-    $langcode = $entity->language()->getId();
-    // Retrieve and apply the pattern for this content type.
-    $pattern = $this->getPatternByEntity($entity);
-    if (empty($pattern)) {
-      // No pattern? Do nothing (otherwise we may blow away existing aliases...)
-      return NULL;
-    }
-
-    // Core does not handle aliases with language Not Applicable.
-    if ($langcode == LanguageInterface::LANGCODE_NOT_APPLICABLE) {
-      $langcode = LanguageInterface::LANGCODE_NOT_SPECIFIED;
-    }
-
-    // Build token data.
-    $data = [
-      $this->tokenEntityMapper->getTokenTypeForEntityType($entity->getEntityTypeId()) => $entity,
-    ];
-
-    // Replace any tokens in the pattern.
-    // Uses callback option to clean replacements. No sanitization.
-    // Pass empty BubbleableMetadata object to explicitly ignore cacheablity,
-    // as the result is never rendered.
-    $alias = $this->token->replace($pattern->getPattern(), $data, array(
-      'clear' => TRUE,
-      'callback' => array($this->aliasCleaner, 'cleanTokenValues'),
-      'langcode' => $langcode,
-      'pathauto' => TRUE,
-    ), new BubbleableMetadata());
-
-    // Check if the token replacement has not actually replaced any values. If
-    // that is the case, then stop because we should not generate an alias.
-    // @see token_scan()
-    $pattern_tokens_removed = preg_replace('/\[[^\s\]:]*:[^\s\]]*\]/', '', $pattern->getPattern());
-    if ($alias === $pattern_tokens_removed) {
-      return NULL;
-    }
-
-    $alias = $this->aliasCleaner->cleanAlias($alias);
-
-    // If we have arrived at an empty string, discontinue.
-    if (!Unicode::strlen($alias)) {
-      return NULL;
-    }
-
-    $source = '/domain_path/' . $this->domain_id . '/' . $entity->getEntityTypeId() . '/' . $entity->id();
-    // If the alias already exists, generate a new, hopefully unique, variant.
-    $original_alias = $alias;
-    $this->aliasUniquifier->uniquify($alias, $source, $langcode);
-    if ($original_alias != $alias) {
-      // Alert the user why this happened.
-      $this->messenger->addMessage($this->t('The automatically generated alias %original_alias conflicted with an existing alias. Alias changed to %alias.', array(
-        '%original_alias' => $original_alias,
-        '%alias' => $alias,
-      )));
-    }
-
-    return $alias;
-  }
   /**
-   * Apply patterns to create an alias.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity.
-   * @param string $op
-   *   Operation being performed on the content being aliased
-   *   ('insert', 'update', 'return', or 'bulkupdate').
-   *
-   * @return array|string
-   *   The alias that was created.
-   *
-   * @see _pathauto_set_alias()
+   * {@inheritdoc}
    */
   public function createEntityAlias(EntityInterface $entity, $op) {
     // Retrieve and apply the pattern for this content type.
@@ -170,16 +103,7 @@ class DomainPathGenerator extends PathautoGenerator {
       return NULL;
     }
 
-  /*  $domain_path_loader = \Drupal::service('domain_path.loader');
-    $properties['domain_id'] = $this->domain_id;
-    $properties['entity_id'] = $entity->id();
-    $domain_path = $domain_path_loader->loadByProperties($properties);
-    if ($domain_path) {
-      $domain_path = reset($domain_path);
-    }*/
-
-    $source = '/domain_path/' . $this->domain_id . '/' . $entity->getEntityTypeId() . '/' . $entity->id();
-    //$source = '/' . $entity->toUrl()->getInternalPath();
+    $source = $this->getSource($entity);
     $config = $this->configFactory->get('pathauto.settings');
     $langcode = $entity->language()->getId();
 
@@ -243,6 +167,7 @@ class DomainPathGenerator extends PathautoGenerator {
     // Allow other modules to alter the alias.
     $context['source'] = &$source;
     $context['pattern'] = $pattern;
+
     // do not use this alter, because
     // it would rewrite domains aliases
     //$this->moduleHandler->alter('pathauto_alias', $alias, $context);
@@ -279,19 +204,7 @@ class DomainPathGenerator extends PathautoGenerator {
   }
 
   /**
-   * Creates or updates an alias for the given entity.
-   *
-   * @param EntityInterface $entity
-   *   Entity for which to update the alias.
-   * @param string $op
-   *   The operation performed (insert, update)
-   * @param array $options
-   *   - force: will force updating the path
-   *   - language: the language for which to create the alias
-   *
-   * @return array|null
-   *   - An array with alias data in case the alias has been created or updated.
-   *   - NULL if no operation performed.
+   * {@inheritdoc}
    */
   public function updateEntityAlias(EntityInterface $entity, $op, array $options = array()) {
     // Skip if the entity does not have the path field.

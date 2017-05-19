@@ -7,9 +7,7 @@
 
 namespace Drupal\domain_path\EventSubscriber;
 
-use Drupal\Core\Url;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\redirect\RedirectChecker;
 use Symfony\Component\Routing\RequestContext;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -18,11 +16,9 @@ use Drupal\Core\Path\AliasManager;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\Core\PathProcessor\InboundPathProcessorInterface;
-use Drupal\domain_path\Exception\DomainPathRedirectLoopException;
+//use Drupal\domain_path\Exception\DomainPathRedirectLoopException;
 use Drupal\domain_path\DomainPathRepository;
 
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Drupal\domain\DomainNegotiatorInterface;
@@ -139,11 +135,6 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
       return;
     }
 
-    // no need to redirect. default domain is controlled by redirect module.
-    /*if ($domain->isDefault()) {
-      return;
-    }*/
-
     // todo: add term/user routes
     // This is necessary because this also gets called on
     // node sub-tabs such as "edit", "revisions", etc.  This
@@ -152,31 +143,10 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
       return;
     }
 
-    // Get URL info and process it to be used for hash generation.
-    //parse_str($request->getQueryString(), $request_query);
-
-    // Do the inbound processing so that for example language prefixes are
-    // removed.
-    //$path = $this->pathProcessor->processInbound($request->getPathInfo(), $request);
-    //$path = ltrim($path, '/');
-
     $this->context->fromRequest($request);
 
-    try {
-      $node = \Drupal::routeMatch()->getParameter('node');
-
-
-      // TODO: enable for all entities types
-      $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());
-    }
-    catch (DomainPathRedirectLoopException $e) {
-      \Drupal::logger('domain_path')->warning($e->getMessage());
-      $response = new Response();
-      $response->setStatusCode(404);
-      $response->setContent('Service unavailable');
-      $event->setResponse($response);
-      return;
-    }
+    $node = \Drupal::routeMatch()->getParameter('node');
+    $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());
 
     if (!empty($domain_entity)) {
 

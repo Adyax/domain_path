@@ -164,8 +164,7 @@ function _domain_path_entity_form_submit($form, FormStateInterface $form_state) 
           continue;
         }
         else {
-          //$alias = $generator->createEntityAlias($entity, 'return');
-          $alias = $generator->generateEntityAlias($entity);
+          $alias = $generator->createEntityAlias($entity, 'return');
         }
       }
 
@@ -221,9 +220,9 @@ function domain_path_pathauto_alias_alter(&$alias, array &$context) {
   $pattern = $context['pattern'];
   $domains = $pattern->getThirdPartySetting('domain_path', 'domains');
   if (!empty($domains)) {
-    // check if one of domains is active
+    // do not generate alias if one of domains checked in settings.
     if (!empty(array_filter($domains))) {
-      $alias .= '.html';
+      $alias = '';
     }
   }
 }
