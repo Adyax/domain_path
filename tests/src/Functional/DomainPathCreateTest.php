@@ -13,6 +13,21 @@ class DomainPathCreateTest extends DomainPathTestBase {
    * Tests initial domain path creation.
    */
   public function testDomainPathCreate() {
+    $admin = $this->drupalCreateUser([
+      'bypass node access',
+      'administer content types',
+      'administer node fields',
+      'administer node display',
+      'administer domain path entity',
+      'edit domain path entity',
+    ]);
+    $this->drupalLogin($admin);
+
+    $list_href = 'admin/config/domain_path';
+
+    $this->drupalGet($list_href);
+    $this->assertSession()->statusCodeEquals(200);
+
     // No domain paths should exist.
     $this->domainPathTableIsEmpty();
 
@@ -20,7 +35,7 @@ class DomainPathCreateTest extends DomainPathTestBase {
     $domain_path_storage = \Drupal::service('domain_path.loader')->getStorage();
     $domain_path_entity = $domain_path_storage->create(['type' => 'domain_path']);
     $properties_map = [
-      'alias' => '/test',
+      'alias' => '/test-alias',
       'domain_id' => 'http://test.com/',
       'language' => 'und',
       'entity_type' => 'node',
@@ -52,6 +67,16 @@ class DomainPathCreateTest extends DomainPathTestBase {
     // Has a UUID been set?
     $this->assertTrue($new_domain_path->uuid(), 'Entity UUID set properly.');
 
+    $this->drupalGet($list_href);
+    $this->assertSession()->statusCodeEquals(200);
+
+    // Check that links are printed.
+    $edit_href = "admin/config/domain_path/{$domain_path_entity->id()}/edit";
+    $this->assertSession()->linkByHrefExists($edit_href, 0, 'Link found ' . $edit_href);
+    $this->assertSession()->assertEscaped($domain_path_entity->id());
+    $this->drupalGet($edit_href);
+    $this->assertSession()->statusCodeEquals(200);
+
     // Delete the domain path.
     $domain_path_entity->delete();
     $domain_path_entity = \Drupal::service('domain_path.loader')->load($default_id, TRUE);
@@ -59,5 +84,7 @@ class DomainPathCreateTest extends DomainPathTestBase {
 
     // No domain path should exist.
     $this->domainPathTableIsEmpty();
+    $this->drupalGet($list_href);
+    $this->assertSession()->statusCodeEquals(200);
   }
 }

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\domain_path\Functional;
 
-use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Tests\BrowserTestBase;
 
 abstract class DomainPathTestBase extends BrowserTestBase {
@@ -12,7 +11,7 @@ abstract class DomainPathTestBase extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['path', 'pathauto', 'redirect', 'domain_path', 'node'];
+  public static $modules = ['domain_path', 'node', 'user'];
 
   /**
    * We use the standard profile for testing.
@@ -38,7 +37,6 @@ abstract class DomainPathTestBase extends BrowserTestBase {
    * Reusable test function for checking initial / empty table status.
    */
   public function domainPathTableIsEmpty() {
-    //$domain_loader = \Drupal::service('domain.loader');
     $domain_paths = \Drupal::service('domain_path.loader')->loadMultiple(NULL, TRUE);
     $this->assertTrue(empty($domain_paths), 'No domain paths have been created.');
   }
