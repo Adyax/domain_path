@@ -172,7 +172,7 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
     catch (DomainPathRedirectLoopException $e) {
       \Drupal::logger('domain_path')->warning($e->getMessage());
       $response = new Response();
-      $response->setStatusCode(503);
+      $response->setStatusCode(404);
       $response->setContent('Service unavailable');
       $event->setResponse($response);
       return;

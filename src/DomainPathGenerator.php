@@ -139,6 +139,23 @@ class DomainPathGenerator extends PathautoGenerator {
 
     $alias = $this->aliasCleaner->cleanAlias($alias);
 
+    // If we have arrived at an empty string, discontinue.
+    if (!Unicode::strlen($alias)) {
+      return NULL;
+    }
+
+    $source = '/domain_path/' . $this->domain_id . '/' . $entity->getEntityTypeId() . '/' . $entity->id();
+    // If the alias already exists, generate a new, hopefully unique, variant.
+    $original_alias = $alias;
+    $this->aliasUniquifier->uniquify($alias, $source, $langcode);
+    if ($original_alias != $alias) {
+      // Alert the user why this happened.
+      $this->messenger->addMessage($this->t('The automatically generated alias %original_alias conflicted with an existing alias. Alias changed to %alias.', array(
+        '%original_alias' => $original_alias,
+        '%alias' => $alias,
+      )), $op);
+    }
+
     return $alias;
   }
   /**

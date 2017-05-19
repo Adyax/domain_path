@@ -151,7 +151,7 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
   public function postSave(EntityStorageInterface $storage, $update = TRUE) {
     parent::postSave($storage, $update);
 
-    if (\Drupal::moduleHandler()->moduleExists('path') /*&& !$this->domain_id->entity->isDefault()*/) {
+    if (\Drupal::moduleHandler()->moduleExists('path')) {
       \Drupal::service('path.alias_storage')->save($this->getSource() , $this->get('alias')->value, $this->get('language')->value);
     }
   }
