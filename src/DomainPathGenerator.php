@@ -4,22 +4,11 @@ namespace Drupal\domain_path;
 
 use Drupal\pathauto\PathautoGenerator;
 use Drupal\pathauto\PathautoGeneratorInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
-use \Drupal\pathauto\AliasCleanerInterface;
-use \Drupal\pathauto\AliasStorageHelperInterface;
-use \Drupal\pathauto\AliasUniquifierInterface;
-use \Drupal\pathauto\MessengerInterface;
 use Drupal\Core\Entity\RevisionableInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\StringTranslation\TranslationInterface;
-use Drupal\Core\Utility\Token;
-use Drupal\token\TokenEntityMapperInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\pathauto\PathautoState;
 use Drupal\Component\Utility\Unicode;
 
@@ -94,13 +83,14 @@ class DomainPathGenerator extends PathautoGenerator {
       }
       // If still not set.
       if (!isset($this->patterns[$this->domain_id][$entity->getEntityTypeId()][$entity->id()][$langcode])) {
-        $this->patterns[$this->domain_id][$domain_id][$entity->getEntityTypeId()][$entity->id()][$langcode] = NULL;
+        $this->patterns[$this->domain_id][$entity->getEntityTypeId()][$entity->id()][$langcode] = NULL;
       }
     }
     return $this->patterns[$this->domain_id][$entity->getEntityTypeId()][$entity->id()][$langcode];
   }
 
   public function generateEntityAlias(EntityInterface $entity) {
+    $langcode = $entity->language()->getId();
     // Retrieve and apply the pattern for this content type.
     $pattern = $this->getPatternByEntity($entity);
     if (empty($pattern)) {
