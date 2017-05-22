@@ -49,9 +49,7 @@ class DomainPathForm extends ContentEntityForm {
     ];
 
     $entity_type_options = [];
-    $config = \Drupal::config('domain_path.settings');
-    $enabled_entity_types = $config->get('entity_types');
-    $enabled_entity_types = array_filter($enabled_entity_types);
+    $enabled_entity_types = _domain_path_get_configured_entity_types();
     if ($enabled_entity_types) {
       $default_target_entity_type = !empty($default_target_entity_type) ? $default_target_entity_type : key($enabled_entity_types);
       $entity_types_info = $this->entityTypeManager->getDefinitions();

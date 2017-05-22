@@ -7,6 +7,7 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\domain_path\Plugin\Menu\ViewTab;
 
 /**
  * Implements hook_entity_type_alter().
@@ -61,9 +62,7 @@ function domain_path_form_alter(&$form, &$form_state, $form_id) {
  * @param $entity
  */
 function _domain_path_process_entities_edit_form(&$form, &$form_state, $form_id, $entity) {
-  $config = \Drupal::config('domain_path.settings');
-  $enabled_entity_types = $config->get('entity_types');
-  $enabled_entity_types = array_filter($enabled_entity_types);
+  $enabled_entity_types = _domain_path_get_configured_entity_types();
   if ($enabled_entity_types) {
     $entity_type = $entity->getEntityTypeId();
     $entity_bundle = $entity->bundle();
@@ -225,4 +224,32 @@ function domain_path_pathauto_alias_alter(&$alias, array &$context) {
       $alias = '';
     }
   }
+}
+
+/**
+ * Implements hook_local_tasks_alter().
+ */
+function domain_path_local_tasks_alter(&$local_tasks) {
+  $enabled_entity_types = _domain_path_get_configured_entity_types();
+
+  if ($enabled_entity_types) {
+    foreach (array_keys($enabled_entity_types) as $entity_type) {
+      if (isset($local_tasks["entity.$entity_type.canonical"])) {
+        $local_tasks["entity.$entity_type.canonical"]['class'] = ViewTab::class;
+        $local_tasks["entity.$entity_type.canonical"]['entity_type_id'] = $entity_type;
+      }
+    }
+  }
+}
+
+/**
+ * Helper function for retrieving configured entity types.
+ *
+ * @return array|mixed|null
+ */
+function _domain_path_get_configured_entity_types() {
+  $config = \Drupal::config('domain_path.settings');
+  $enabled_entity_types = $config->get('entity_types');
+
+  return array_filter($enabled_entity_types);
 }
