@@ -53,11 +53,5 @@ entity.domain_path_settings:
   requirements:
     _permission: 'administer domain path entity'
 
-domain_path.view:
-  path: '/domain_path/{domain}/{entity_type}/{node}'
-  defaults:
-    _controller: '\Drupal\node\Controller\NodeViewController::view'
-  requirements:
-    node: \d+
-    _entity_access: 'node.view'
-    _custom_access:  '\Drupal\domain_path\DomainPathAccess::access'
+route_callbacks:
+  - 'Drupal\domain_path\Routing\DomainPathRouteSubscriber::routes'

@@ -6,6 +6,7 @@ domain_path.settings_tab:
   title: Domain Path Settings
   route_name: entity.domain_path_settings
   base_route: entity.domain_path.collection
-domain_path.view.tab:
+domain_path.local_tasks:
+  class: Drupal\Core\Menu\LocalTaskDefault
   deriver: 'Drupal\domain_path\Plugin\Derivative\DynamicDomainPathViewLocalTasks'
   weight: -100

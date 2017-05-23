@@ -183,8 +183,8 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
   public function getUrl() {
     $url = '';
     $domain_id = $this->get('domain_id')->get(0)->getValue()['target_id'];
-    $entity_type = 'node';
-    $nid = $this->get('entity_id')->get(0)->getValue()['target_id'];
+    $entity_type = $this->get('entity_type')->value;
+    $entity_id = $this->get('entity_id')->get(0)->getValue()['target_id'];
 
     /*if (!$this->domain_id->entity->isDefault()) {
       $url = Url::fromRoute('domain_path.view', [
@@ -197,10 +197,9 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
       $url = $this->entity_id->entity->toUrl();
     }*/
 
-    $url = Url::fromRoute('domain_path.view', [
+    $url = Url::fromRoute("domain_path.view.$entity_type", [
       'domain' => $domain_id,
-      'entity_type' => $entity_type,
-      'node' => $nid
+      $entity_type => $entity_id
     ]);
 
     return $url;

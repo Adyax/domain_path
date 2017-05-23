@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Drupal\domain\DomainNegotiatorInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 
-class DomainPathRedirectNode implements EventSubscriberInterface {
+class DomainPathRedirect implements EventSubscriberInterface {
 
 
   protected $domain_negotiator;
@@ -111,23 +111,20 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
   * {@inheritdoc}
   */
   public static function getSubscribedEvents() {
-    // This announces which events you want to subscribe to.
-    // We only need the request event for this example.  Pass
-    // this an array of method names
     return([
       KernelEvents::REQUEST => [
-        ['redirectNode'],
+        ['redirectEntity'],
       ]
     ]);
   }
 
   /**
-  * Redirect requests for my_content_type node detail pages to node/123.
+  * Redirect requests for entities to domains aliases.
   *
   * @param GetResponseEvent $event
   * @return void
   */
-  public function redirectNode(GetResponseEvent $event) {
+  public function redirectEntity(GetResponseEvent $event) {
     $request = clone $event->getRequest();
     $domain = $this->domain_negotiator->getActiveDomain();
 
@@ -135,18 +132,25 @@ class DomainPathRedirectNode implements EventSubscriberInterface {
       return;
     }
 
+    $domain_path_helper = \Drupal::service('domain_path.helper');
+    $entity_canonical = $domain_path_helper->getConfiguredEntityCanonical();
+    $route_current = $request->attributes->get('_route');
     // todo: add term/user routes
     // This is necessary because this also gets called on
     // node sub-tabs such as "edit", "revisions", etc.  This
     // prevents those pages from redirected.
-    if ($request->attributes->get('_route') !== 'entity.node.canonical') {
+    /*if (!in_array($route_current, $entity_canonical)) {
+      return;
+    }*/
+    if (!$parameter = $entity_canonical[$route_current]) {
       return;
     }
 
     $this->context->fromRequest($request);
 
-    $node = \Drupal::routeMatch()->getParameter('node');
-    $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $node->id(), $this->languageManager->getCurrentLanguage()->getId());
+    $entity = \Drupal::routeMatch()->getParameter($parameter);
+    $c =$entity->getEntityTypeId();
+    $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $entity->getEntityTypeId(), $entity->id(), $this->languageManager->getCurrentLanguage()->getId());
 
     if (!empty($domain_entity)) {
 

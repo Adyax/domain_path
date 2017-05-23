@@ -47,10 +47,12 @@ class DomainPathRepository {
   /**
    * Gets a redirect for given path, query and language.
    *
-   * @param string $source_path
-   *   The redirect source path.
-   * @param array $query
-   *   The redirect source path query.
+   * @param string $domain_id
+   *
+   * @param array $entity_type
+   *
+   * @param array $entity_id
+   *
    * @param $language
    *   The language for which is the redirect.
    *
@@ -59,11 +61,12 @@ class DomainPathRepository {
    *
    * @throws \Drupal\domain_path\Exception\DomainPathRedirectLoopException
    */
-  public function findMatchingRedirect($domain_id, $entity_id, $language = Language::LANGCODE_NOT_SPECIFIED) {
+  public function findMatchingRedirect($domain_id, $entity_type, $entity_id, $language = Language::LANGCODE_NOT_SPECIFIED) {
     // Load redirects by hash. A direct query is used to improve performance.
-    $id = $this->connection->query('SELECT id FROM {domain_path} WHERE domain_id = :domain_id AND entity_id = :entity_id AND language = :language',
+    $id = $this->connection->query('SELECT id FROM {domain_path} WHERE domain_id = :domain_id AND entity_type = :entity_type AND entity_id = :entity_id AND language = :language',
       [
         ':domain_id' => $domain_id,
+        ':entity_type' => $entity_type,
         ':entity_id' => $entity_id,
         ':language' => $language,
       ]
