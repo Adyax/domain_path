@@ -1,6 +1,7 @@
 <?php
 
 namespace Drupal\Tests\domain_path\Functional;
+
 use Drupal\Component\Render\FormattableMarkup;
 
 /**

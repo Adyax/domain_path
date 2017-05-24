@@ -68,6 +68,10 @@ function _domain_path_process_entities_edit_form(&$form, &$form_state, $form_id,
     $entity_type = $entity->getEntityTypeId();
     $entity_bundle = $entity->bundle();
     $form_id_pattern = $entity_type . '_' . $entity_bundle . '_';
+    // exception for user entity edit form
+    if ($entity_type == 'user') {
+      $form_id_pattern = $entity_type . '_';
+    }
     foreach ($enabled_entity_types as $enabled_entity_type) {
       if ($entity_type == $enabled_entity_type && strpos($form_id, $form_id_pattern) !== FALSE) {
         _domain_path_attach_entities_common_submit($form);
@@ -228,30 +232,19 @@ function domain_path_pathauto_alias_alter(&$alias, array &$context) {
 }
 
 /**
- * Implements hook_local_tasks_alter().
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * @param $local_tasks
  */
-function domain_path_local_tasks_alter(&$local_tasks) {
-  // todo: check and remove this alter
-  /*$enabled_entity_types = _domain_path_get_configured_entity_types();
-
-  if ($enabled_entity_types) {
-    foreach (array_keys($enabled_entity_types) as $entity_type) {
-      if (isset($local_tasks["entity.$entity_type.canonical"])) {
-        $local_tasks["entity.$entity_type.canonical"]['class'] = ViewTab::class;
-        $local_tasks["entity.$entity_type.canonical"]['entity_type_id'] = $entity_type;
+function domain_path_menu_local_tasks_alter(&$local_tasks) {
+  $admin_context = \Drupal::service('router.admin_context');
+  if ($admin_context->isAdminRoute()) {
+    // remove domain_path local tasks on admin pages
+    foreach ($local_tasks['tabs'][0] as $local_task_id => $local_task) {
+      if (strpos($local_task_id, 'domain_path.local_tasks') !== FALSE)  {
+        unset($local_tasks['tabs'][0][$local_task_id]);
+        continue;
       }
     }
-  }*/
+  }
 }
-
-/**
- * Helper function for retrieving configured entity types.
- *
- * @return array|mixed|null
- */
-/*function _domain_path_get_configured_entity_types() {
-  $config = \Drupal::config('domain_path.settings');
-  $enabled_entity_types = $config->get('entity_types');
-
-  return array_filter($enabled_entity_types);
-}*/
