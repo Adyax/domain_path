@@ -139,17 +139,13 @@ class DomainPathRedirect implements EventSubscriberInterface {
     // This is necessary because this also gets called on
     // node sub-tabs such as "edit", "revisions", etc.  This
     // prevents those pages from redirected.
-    /*if (!in_array($route_current, $entity_canonical)) {
-      return;
-    }*/
-    if (!$parameter = $entity_canonical[$route_current]) {
+    if (empty($entity_canonical[$route_current]) || !$parameter = $entity_canonical[$route_current]) {
       return;
     }
 
     $this->context->fromRequest($request);
 
     $entity = \Drupal::routeMatch()->getParameter($parameter);
-    $c =$entity->getEntityTypeId();
     $domain_entity = $this->redirectRepository->findMatchingRedirect($domain->id(), $entity->getEntityTypeId(), $entity->id(), $this->languageManager->getCurrentLanguage()->getId());
 
     if (!empty($domain_entity)) {
