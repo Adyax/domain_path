@@ -6,13 +6,11 @@ namespace Drupal\Tests\domain_path\Functional;
 use Drupal\Component\Render\FormattableMarkup;
 
 /**
- * Tests the domain path creation API.
+ * Tests the domain path with pathauto patterns.
  *
  * @group domain_path
  */
-class DomainPathAliasTest extends DomainPathTestBase {
-
-
+class DomainPathPathautoTest extends DomainPathTestBase {
   /**
    * {@inheritdoc}
    */
@@ -24,7 +22,8 @@ class DomainPathAliasTest extends DomainPathTestBase {
     $this->domains = $this->getDomains();
   }
 
-  public function testDomainPathAliasesFill() {
+  public function testDomainPathCheckRedirectDefault() {
     $this->domainPathAliasesFill();
+
   }
 }

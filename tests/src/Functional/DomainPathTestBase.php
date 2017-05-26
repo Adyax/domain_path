@@ -6,6 +6,20 @@ use Drupal\Tests\BrowserTestBase;
 use Drupal\Component\Render\FormattableMarkup;
 
 abstract class DomainPathTestBase extends BrowserTestBase {
+  /**
+   * @var
+   */
+  protected $domains;
+
+  /**
+   * @var
+   */
+  protected $node1;
+
+  /**
+   * @var
+   */
+  protected $edit;
 
   /**
    * Sets a base hostname for running tests.
@@ -20,7 +34,7 @@ abstract class DomainPathTestBase extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['domain_path', 'node', 'user', 'path', 'system'];
+  public static $modules = ['domain_path', 'node', 'user', 'path', 'system', 'domain_access'];
 
   /**
    * We use the standard profile for testing.
@@ -49,6 +63,57 @@ abstract class DomainPathTestBase extends BrowserTestBase {
   public function domainPathTableIsEmpty() {
     $domain_paths = \Drupal::service('domain_path.loader')->loadMultiple(NULL, TRUE);
     $this->assertTrue(empty($domain_paths), 'No domain paths have been created.');
+  }
+
+  /**
+   * Basic setup.
+   */
+  public function domainPathBasicSetup() {
+    $admin = $this->drupalCreateUser(array(
+      'bypass node access',
+      'administer content types',
+      'administer node fields',
+      'administer node display',
+      'administer domains',
+      'administer pathauto',
+      'administer domain path entity',
+      'administer url aliases',
+      'edit domain path entity',
+    ));
+    $this->drupalLogin($admin);
+
+    $this->config('pathauto.settings')
+      ->set('enabled_entity_types', ['node' => '1'])->save();
+
+    $this->drupalGet('admin/config/search/path/settings');
+    $this->assertSession()->statusCodeEquals(200);
+
+    // check Node entity type
+    $this->config('domain_path.settings')
+      ->set('entity_types', ['node' => '1', 'taxonomy_term' => '1'])->save();
+
+    $this->drupalGet('admin/config/domain_path/domain_path_settings');
+    $this->assertSession()->statusCodeEquals(200);
+  }
+
+  /**
+   *
+   */
+  public function domainPathAliasesFill() {
+    $this->domainPathBasicSetup();
+
+    $this->node1 = $this->drupalCreateNode();
+    // Create alias.
+    $this->edit = [];
+    foreach ($this->domains as $domain) {
+      $this->edit['path[0][domain_path][' . $domain->id() . ']'] = '/' . $this->randomMachineName(8);
+    }
+
+    $this->edit['path[0][alias]'] = '/' . $this->randomMachineName(8);
+    $this->drupalPostForm('node/' . $this->node1->id() . '/edit', $this->edit, t('Save'));
+
+    $this->drupalGet('node/' . $this->node1->id() . '/edit');
+    $this->assertSession()->statusCodeEquals(200);
   }
 
   /**
