@@ -2,17 +2,13 @@
 
 namespace Drupal\Tests\domain_path\Functional;
 
-//use Drupal\Tests\domain_path\Functional\DomainPathTestBase;
-use Drupal\Component\Render\FormattableMarkup;
 
 /**
- * Tests the domain path creation API.
+ * Tests the domain path aliases saving from edit form.
  *
  * @group domain_path
  */
 class DomainPathAliasTest extends DomainPathTestBase {
-
-
   /**
    * {@inheritdoc}
    */
@@ -25,6 +21,8 @@ class DomainPathAliasTest extends DomainPathTestBase {
   }
 
   public function testDomainPathAliasesFill() {
+    $this->domainPathBasicSetup();
+
     $this->domainPathAliasesFill();
   }
 }

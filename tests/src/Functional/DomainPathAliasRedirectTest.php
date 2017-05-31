@@ -2,11 +2,9 @@
 
 namespace Drupal\Tests\domain_path\Functional;
 
-//use Drupal\Tests\domain_path\Functional\DomainPathTestBase;
-use Drupal\Component\Render\FormattableMarkup;
 
 /**
- * Tests the domain path creation API.
+ * Tests the domain path aliases proper redirect
  *
  * @group domain_path
  */
@@ -23,6 +21,8 @@ class DomainPathAliasRedirectTest extends DomainPathTestBase {
   }
 
   public function testDomainPathCheckRedirectDefault() {
+    $this->domainPathBasicSetup();
+
     $this->domainPathAliasesFill();
 
     // check the redirects from domains. in all cases must be the current main domain

@@ -34,7 +34,7 @@ abstract class DomainPathTestBase extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['domain_path', 'node', 'user', 'path', 'system', 'domain_access'];
+  public static $modules = ['domain_path', 'field', 'node', 'user', 'path', 'system', 'domain_access', 'pathauto'];
 
   /**
    * We use the standard profile for testing.
@@ -51,7 +51,7 @@ abstract class DomainPathTestBase extends BrowserTestBase {
 
     // Create Basic page and Article node types.
     if ($this->profile != 'standard') {
-      $this->drupalCreateContentType(['type' => 'article', 'name' => 'Article']);
+      $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
     }
 
     $this->base_hostname = \Drupal::service('domain.creator')->createHostname();
@@ -97,11 +97,9 @@ abstract class DomainPathTestBase extends BrowserTestBase {
   }
 
   /**
-   *
+   *  Fill domain path aliases textfields
    */
   public function domainPathAliasesFill() {
-    $this->domainPathBasicSetup();
-
     $this->node1 = $this->drupalCreateNode();
     // Create alias.
     $this->edit = [];
@@ -175,61 +173,6 @@ abstract class DomainPathTestBase extends BrowserTestBase {
     $domains = \Drupal::service('domain.loader')->loadMultiple(NULL, TRUE);
     $this->assertTrue((count($domains) - count($original_domains)) == $count, new FormattableMarkup('Created %count new domains.', array('%count' => $count)));
   }
-
-  /**
-   * Finds field (input, textarea, select) with specified locator.
-   *
-   * @param string $locator
-   *   Input id, name or label.
-   *
-   * @return \Behat\Mink\Element\NodeElement|null
-   *   The input field element.
-   */
-  public function findField($locator) {
-    return $this->getSession()->getPage()->findField($locator);
-  }
-
-  /**
-   * Finds button with specified locator.
-   *
-   * @param string $locator
-   *   Button id, value or alt.
-   *
-   * @return \Behat\Mink\Element\NodeElement|null
-   *   The button node element.
-   */
-  public function findButton($locator) {
-    return $this->getSession()->getPage()->findButton($locator);
-  }
-
-  /**
-   * Presses button with specified locator.
-   *
-   * @param string $locator
-   *   Button id, value or alt.
-   *
-   * @throws \Behat\Mink\Exception\ElementNotFoundException
-   */
-  public function pressButton($locator) {
-    $this->getSession()->getPage()->pressButton($locator);
-  }
-
-  /**
-   * Fills in field (input, textarea, select) with specified locator.
-   *
-   * @param string $locator
-   *   Input id, name or label.
-   * @param string $value
-   *   Value.
-   *
-   * @throws \Behat\Mink\Exception\ElementNotFoundException
-   *
-   * @see \Behat\Mink\Element\NodeElement::setValue
-   */
-  public function fillField($locator, $value) {
-    $this->getSession()->getPage()->fillField($locator, $value);
-  }
-
 
   /**
    * Returns an uncached list of all domains.

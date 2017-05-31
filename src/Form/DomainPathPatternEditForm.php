@@ -67,13 +67,6 @@ class DomainPathPatternEditForm extends PatternEditForm {
       if ($alias_type->getDerivativeId() && $entity_type = $this->entityTypeManager->getDefinition($alias_type->getDerivativeId())) {
         $default_domains = $this->entity->getThirdPartySetting('domain_path', $this->domain_path_property);
 
-
-        /*foreach ($this->entity->getSelectionConditions() as $condition_id => $condition) {
-          if ($condition->getPluginId() == 'domain') {
-            $default_domains = $condition->getConfiguration()['domains'];
-          }
-        }*/
-
         if ($domains = $this->domainLoaderManager->loadMultipleSorted()) {
           $domain_options = [];
           foreach ($domains as $domain_id => $domain) {
@@ -83,8 +76,8 @@ class DomainPathPatternEditForm extends PatternEditForm {
             '#title' => $this->t('Domains'),
             '#type' => 'checkboxes',
             '#options' => $domain_options,
-            '#default_value' => $default_domains,
-            '#description' => $this->t('Check to which domains this pattern should be applied. Leave empty to allow any.'),
+            '#default_value' => $default_domains ? $default_domains : [],
+            '#description' => $this->t('Check to which domains this pattern should be applied.'),
           ];
         }
       }
@@ -92,72 +85,27 @@ class DomainPathPatternEditForm extends PatternEditForm {
 
     $form['#entity_builders'][] = [$this, 'entityBuilder'];
 
-
     return $form;
   }
 
   public function entityBuilder( $entity_type,
-                                 PathautoPattern $language,
+                                 PathautoPattern $pattern,
                                  &$form,
                                  \Drupal\Core\Form\FormStateInterface $form_state) {
     //If our property can be found from form_state values
     if ($form_state->getValue($this->domain_path_property)) {
       //We can update the linked property on thirdPartySetting
-      $language->setThirdPartySetting(
+      $pattern->setThirdPartySetting(
         'domain_path',
         $this->domain_path_property,
         $form_state->getValue($this->domain_path_property)
       );
-    }else{
+    }
+    else {
       //User surely wanted to remove the previous value,
       //so remove it from thirdPartySetting property too
-      $language->unsetThirdPartySetting('domain_path', $this->domain_path_property);
+      $pattern->unsetThirdPartySetting('domain_path', $this->domain_path_property);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public function buildEntity(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\pathauto\PathautoPatternInterface $entity */
-    $entity = parent::buildEntity($form, $form_state);
-
-    // Will only be used for new patterns.
-    $default_weight = 0;
-
-    $alias_type = $entity->getAliasType();
-    if ($alias_type->getDerivativeId() && $this->entityTypeManager->hasDefinition($alias_type->getDerivativeId())) {
-      //$entity_type = $alias_type->getDerivativeId();
-      // First, remove domain condition.
-      /*foreach ($entity->getSelectionConditions() as $condition_id => $condition) {
-        if (in_array($condition->getPluginId(), ['domain'])) {
-          $entity->removeSelectionCondition($condition_id);
-        }
-      }
-
-      if ($domains = array_filter((array) $form_state->getValue('domains'))) {
-        $default_weight -= 5;
-        //$domain_mapping = $entity_type . ':' . $this->entityTypeManager->getDefinition($entity_type)->getKey('langcode') . ':language' . ':domain';
-        $entity->addSelectionCondition(
-          [
-            'id' => 'domain',
-            'domains' => $domains,
-            'negate' => FALSE,
-//            'context_mapping' => [
-//              'entity:domain' => $domain_mapping,
-//            ]
-          ]
-        );
-        //$entity->addRelationship($domain_mapping, t('Domain'));
-      }*/
-
-    }
-
-    if ($entity->isNew()) {
-      $entity->setWeight($default_weight);
-    }
-
-    return $entity;
   }
 
 }

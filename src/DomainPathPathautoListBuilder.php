@@ -21,12 +21,15 @@ class DomainPathPathautoListBuilder extends PathautoPatternListBuilder {
       $row['conditions']['#items'][] = $condition->summary();
     }
 
-    $domains_ids = array_filter($entity->getThirdPartySetting('domain_path', 'domains'));
-    if (!empty($domains_ids)) {
-      $domain_path_loader = \Drupal::service('domain.loader');
-      $domains = $domain_path_loader->loadMultiple($domains_ids);
-      foreach ($domains as $domain) {
-        $row['conditions']['#items'][] = t('The domain is ') . $domain->getHostname();
+    $third_party_settings = $entity->getThirdPartySetting('domain_path', 'domains');
+    if ($third_party_settings) {
+      $domains_ids = array_filter($entity->getThirdPartySetting('domain_path', 'domains'));
+      if (!empty($domains_ids)) {
+        $domain_path_loader = \Drupal::service('domain.loader');
+        $domains = $domain_path_loader->loadMultiple($domains_ids);
+        foreach ($domains as $domain) {
+          $row['conditions']['#items'][] = t('The domain is ') . $domain->getHostname();
+        }
       }
     }
 

@@ -6,3 +6,14 @@ domain_path.settings:
       type: sequence
       sequence:
         type: string
+
+pathauto.pattern.*.third_party.domain_path:
+  type: mapping
+  label: 'Domains pathauto settings'
+  mapping:
+    domains:
+      type: sequence
+      label: 'Domains'
+      sequence:
+        type: string
+        label: 'Domain machinename'
