@@ -55,6 +55,11 @@ abstract class DomainPathTestBase extends BrowserTestBase {
     }
 
     $this->base_hostname = \Drupal::service('domain.creator')->createHostname();
+
+    // Create domains.
+    $this->domainCreateTestDomains();
+    $this->domains = $this->getDomains();
+    $this->domainPathBasicSetup();
   }
 
   /**
@@ -72,6 +77,7 @@ abstract class DomainPathTestBase extends BrowserTestBase {
     $admin = $this->drupalCreateUser(array(
       'bypass node access',
       'administer content types',
+      'administer users',
       'administer node fields',
       'administer node display',
       'administer domains',
@@ -82,35 +88,23 @@ abstract class DomainPathTestBase extends BrowserTestBase {
     ));
     $this->drupalLogin($admin);
 
+    $entity_alias = [
+      'node' => '1',
+      'taxonomy_term' => '1',
+      'user' => '1'
+    ];
+
     $this->config('pathauto.settings')
-      ->set('enabled_entity_types', ['node' => '1'])->save();
+      ->set('enabled_entity_types', array_keys($entity_alias))->save();
 
     $this->drupalGet('admin/config/search/path/settings');
     $this->assertSession()->statusCodeEquals(200);
 
     // check Node entity type
     $this->config('domain_path.settings')
-      ->set('entity_types', ['node' => '1', 'taxonomy_term' => '1'])->save();
+      ->set('entity_types', $entity_alias)->save();
 
     $this->drupalGet('admin/config/domain_path/domain_path_settings');
-    $this->assertSession()->statusCodeEquals(200);
-  }
-
-  /**
-   *  Fill domain path aliases textfields
-   */
-  public function domainPathAliasesFill() {
-    $this->node1 = $this->drupalCreateNode();
-    // Create alias.
-    $this->edit = [];
-    foreach ($this->domains as $domain) {
-      $this->edit['path[0][domain_path][' . $domain->id() . ']'] = '/' . $this->randomMachineName(8);
-    }
-
-    $this->edit['path[0][alias]'] = '/' . $this->randomMachineName(8);
-    $this->drupalPostForm('node/' . $this->node1->id() . '/edit', $this->edit, t('Save'));
-
-    $this->drupalGet('node/' . $this->node1->id() . '/edit');
     $this->assertSession()->statusCodeEquals(200);
   }
 

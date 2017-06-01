@@ -5,11 +5,11 @@ namespace Drupal\Tests\domain_path\Functional;
 use Drupal\Tests\domain_path\DomainPathTestHelperTrait;
 
 /**
- * Tests the domain path with pathauto patterns.
+ * Tests the domain path with pathauto patterns for User entity.
  *
  * @group domain_path
  */
-class DomainPathPathautoTest extends DomainPathTestBase {
+class DomainPathPathautoUserTest extends DomainPathTestBase {
 
   use DomainPathTestHelperTrait;
 
@@ -18,27 +18,19 @@ class DomainPathPathautoTest extends DomainPathTestBase {
    */
   protected function setUp() {
     parent::setUp();
-
-    // Create domains.
-    $this->domainCreateTestDomains();
-    $this->domains = $this->getDomains();
   }
 
   /**
    * Test for pathauto pattern generation for each domain
    */
-  public function testDomainPathPathauto() {
-    $this->domainPathBasicSetup();
-
+  public function testDomainPathPathautoUser() {
     // create default pattern
-    $pattern = $this->createPattern('node', '/pathauto/[node:nid]', -1);
-    $this->addBundleCondition($pattern, 'node', 'page');
+    $pattern = $this->createPattern('user', '/pathauto/[user:uid]', -1);
     $pattern->save();
 
     //create patterns for each domain
     foreach ($this->domains as $domain) {
-      $pattern = $this->createPattern('node', '/' . $domain->id() .'/[node:nid]', -1);
-      $this->addBundleCondition($pattern, 'node', 'page');
+      $pattern = $this->createPattern('user', '/user-' . $domain->id() .'/[user:uid]', -1);
 
       // add domains settings
       $pattern->setThirdPartySetting(
@@ -59,15 +51,15 @@ class DomainPathPathautoTest extends DomainPathTestBase {
     $this->assertSession()->statusCodeEquals(200);
 
     //create node
-    $node1 = $this->drupalCreateNode();
+    $user1 = $this->drupalCreateUser();
 
     $edit = [];
     // check for automatic alias
     $edit['path[0][pathauto]'] = 1;
-    $this->drupalPostForm('node/' . $node1->id() . '/edit', $edit, t('Save'));
+    $this->drupalPostForm('user/' . $user1->id() . '/edit', $edit, 'Save');
 
     // check aliases for domains was generated
-    $this->drupalGet('node/' . $node1->id() . '/edit');
+    $this->drupalGet('user/' . $user1->id() . '/edit');
     $this->assertSession()->statusCodeEquals(200);
   }
 }
