@@ -52,7 +52,7 @@ class DomainPathForm extends ContentEntityForm {
     $domain_path_helper = \Drupal::service('domain_path.helper');
     $enabled_entity_types = $domain_path_helper->getConfiguredEntityTypes();
     if ($enabled_entity_types) {
-      $default_target_entity_type = !empty($default_target_entity_type) ? $default_target_entity_type : key($enabled_entity_types);
+      $default_target_entity_type = !empty($default_target_entity_type) ? $default_target_entity_type : reset($enabled_entity_types);
       $entity_types_info = $this->entityTypeManager->getDefinitions();
       foreach ($enabled_entity_types as $enabled_entity_type) {
         $entity_type_options[$enabled_entity_type] = $entity_types_info[$enabled_entity_type]->getLabel();
@@ -99,6 +99,7 @@ class DomainPathForm extends ContentEntityForm {
    * Handles switching the entity type selector.
    */
   public function ajaxReplaceTargetType(&$form, FormStateInterface $form_state) {
+    $form['entity_id']['#value'] = NULL;
     return $form['entity_id'];
   }
 
