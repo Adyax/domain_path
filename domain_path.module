@@ -5,92 +5,20 @@
  *  Path alias handling for multiple domains.
  */
 
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\domain_path\Plugin\Menu\ViewTab;
-
-/**
- * Implements hook_entity_type_alter().
- *
- * @var $entity_types \Drupal\Core\Entity\EntityTypeInterface[]
- */
-function domain_path_entity_type_alter(array &$entity_types) {
-  // Override default pathauto_pattern entity default form class.
-  if (!empty($entity_types['pathauto_pattern'])) {
-    $entity_types['pathauto_pattern']->setFormClass('default', '\Drupal\domain_path\Form\DomainPathPatternEditForm');
-    $entity_types['pathauto_pattern']->setListBuilderClass('\Drupal\domain_path\DomainPathPathautoListBuilder');
-  }
-}
-
-/**
- * Implements hook_field_widget_info_alter().
- */
-function domain_path_field_widget_info_alter(&$widgets) {
-  if (!empty($widgets['path'])) {
-    $widgets['path']['class'] = '\Drupal\domain_path\DomainPathPathautoWidget';
-  }
-}
-
-/**
- * Implements hook_module_implements_alter().
- */
-function domain_path_module_implements_alter(&$implementations, $hook) {
-  if ($hook == 'field_widget_info_alter') {
-    // Move domain_path_field_widget_info_alter() to the end of the list.
-    $group = $implementations['domain_path'];
-    unset($implementations['domain_path']);
-    $implementations['domain_path'] = $group;
-  }
-}
 
 /**
  * Implements hook_form_alter().
  */
 function domain_path_form_alter(&$form, &$form_state, $form_id) {
-  if (($object = $form_state->getFormObject()) && !empty($object)
-    && is_callable([$object, 'getEntity']) && ($entity = $object->getEntity())) {
-    _domain_path_process_entities_edit_form($form, $form_state, $form_id, $entity);
-  }
-}
-
-/**
- * Helper function for processing entities edit form.
- *
- * @param $form
- * @param $form_state
- * @param $form_id
- * @param $entity
- */
-function _domain_path_process_entities_edit_form(&$form, &$form_state, $form_id, $entity) {
-  $domain_path_helper = \Drupal::service('domain_path.helper');
-  $enabled_entity_types = $domain_path_helper->getConfiguredEntityTypes();
-  if ($enabled_entity_types) {
-    $entity_type = $entity->getEntityTypeId();
-    $entity_bundle = $entity->bundle();
-    $form_id_pattern = $entity_type . '_' . $entity_bundle . '_';
-    // exception for user entity edit form
-    if ($entity_type == 'user') {
-      $form_id_pattern = $entity_type . '_';
-    }
-    foreach ($enabled_entity_types as $enabled_entity_type) {
-      if ($entity_type == $enabled_entity_type && strpos($form_id, $form_id_pattern) !== FALSE) {
-        _domain_path_attach_entities_common_submit($form);
-      }
-    }
-  }
-}
-
-/**
- * Helper function for attach common submit handler to entities edit form.
- *
- * @param $form
- */
-function _domain_path_attach_entities_common_submit(&$form) {
-  if (!empty($form['actions'])) {
-    foreach (array_keys($form['actions']) as $action) {
-      if (isset($form['actions'][$action]['#submit'])) {
-        $form['actions'][$action]['#submit'][] = '_domain_path_entity_form_submit';
-      }
+  // We really only want to alter entity forms with the path widget on it since
+  // we're editing path aliases.
+  if (isset($form['path']['widget']) && ($object = $form_state->getFormObject())
+    && !empty($object) && is_callable([$object, 'getEntity'])
+    && ($entity = $object->getEntity())) {
+    $domain_path_helper = \Drupal::service('domain_path.helper');
+    if ($domain_path_helper->domainPathsIsEnabled($entity)) {
+      $domain_path_helper->alterEntityForm($form, $form_state, $entity);
     }
   }
 }
@@ -99,152 +27,12 @@ function _domain_path_attach_entities_common_submit(&$form) {
  * Implements hook_entity_delete().
  */
 function domain_path_entity_delete(EntityInterface $entity) {
-  _domain_path_delete_domain_path_entities($entity);
+  \Drupal::service('domain_path.helper')->deleteEntityDomainPaths($entity);
 }
 
 /**
  * Implements hook_entity_translation_delete().
  */
 function domain_path_entity_translation_delete(EntityInterface $translation) {
-  _domain_path_delete_domain_path_entities($translation);
-}
-
-/**
- * Helper function for deleting domain path entities.
- *
- * @param \Drupal\Core\Entity\EntityInterface $entity
- */
-function _domain_path_delete_domain_path_entities(EntityInterface $entity) {
-  $domain_path_loader = \Drupal::service('domain_path.loader');
-  $properties_map = [
-    'entity_type' => $entity->getEntityTypeId(),
-    'entity_id' => $entity->id(),
-    'language' => $entity->language()->getId(),
-  ];
-  $domain_path_entities = $domain_path_loader->loadByProperties($properties_map);
-
-  if ($domain_path_entities) {
-    foreach ($domain_path_entities as $domain_path_entity) {
-      $domain_path_entity->delete();
-    }
-  }
-}
-
-/**
- * Custom submit for entity form.
- *
- * @param $form
- * @param \Drupal\Core\Form\FormStateInterface $form_state
- */
-function _domain_path_entity_form_submit($form, FormStateInterface $form_state) {
-  $entity = $form_state->getFormObject()->getEntity();
-  $entity_id = $entity->id();
-  $langcode = $entity->language()->getId();
-  $entity_type = $entity->getEntityTypeId();
-  $properties = [
-    'entity_id' => $entity_id,
-    'language' => $langcode,
-    'entity_type' => $entity_type,
-  ];
-
-  $path_values = $form_state->getValue('path');
-  $domain_path_values = isset($path_values[0]['domain_path']) ? $path_values[0]['domain_path'] : [];
-
-  $domain_path_loader = \Drupal::service('domain_path.loader');
-  $generator = \Drupal::service('domain_path.generator');
-
-  // If not set to revert, then save changes.
-  if (empty($domain_path_values['domain_path_delete'])) {
-    unset($domain_path_values['domain_path_delete']);
-    foreach ($domain_path_values as $domain_id => $alias) {
-      $properties['domain_id'] = $domain_id;
-      $domain_path_entity_data = $domain_path_loader->loadByProperties($properties);
-
-      // generate new alias for domain by pathauto
-      if (isset($path_values[0]['pathauto']) && $path_values[0]['pathauto'] == 1) {
-        $generator->setDomainId($domain_id);
-        if (!empty($alias)) {
-          $generator->updateEntityAlias($entity, 'update');
-          continue;
-        }
-        else {
-          $alias = $generator->createEntityAlias($entity, 'return');
-        }
-      }
-
-      if (!$alias) {
-        if ($domain_path_entity_data) {
-          $domain_path_entity_for_delete = reset($domain_path_entity_data);
-          $domain_path_entity_for_delete->delete();
-        }
-        continue;
-      }
-
-      $properties_map = [
-        'alias' => $alias,
-        'domain_id' => $domain_id,
-        'language' => $langcode,
-        'entity_type' => $entity_type,
-        'entity_id' => $entity_id,
-      ];
-
-      if (!$domain_path_entity_data) {
-        $domain_path_storage = $domain_path_loader->getStorage();
-        $domain_path_entity = $domain_path_storage->create(['type' => 'domain_path']);
-        foreach ($properties_map as $field => $value) {
-          $domain_path_entity->set($field, $value);
-        }
-        $domain_path_entity->save();
-      }
-      else {
-        $domain_path_entity = reset($domain_path_entity_data);
-        if ($domain_path_entity->get('alias')->value != $alias) {
-          $domain_path_entity->set('alias', $alias);
-          $domain_path_entity->save();
-        }
-      }
-    }
-  }
-  else {
-    // Delete all domain path aliases.
-    $domain_path_entities = $domain_path_loader->loadByProperties($properties);
-    foreach ($domain_path_entities as $domain_path_entity) {
-      $domain_path_entity->delete();
-    }
-  }
-}
-
-/**
- * Alter Pathauto-generated aliases before saving.
- *
- */
-function domain_path_pathauto_alias_alter(&$alias, array &$context) {
-  // check if there domain_path settings in pattern -
-  // change default alias to prevent duplicates in url_alias table
-  $pattern = $context['pattern'];
-  $domains = $pattern->getThirdPartySetting('domain_path', 'domains');
-  if (!empty($domains)) {
-    // do not generate alias if one of domains checked in settings.
-    if (!empty(array_filter($domains))) {
-      $alias = '';
-    }
-  }
-}
-
-/**
- * Implements hook_menu_local_tasks_alter().
- *
- * @param $local_tasks
- */
-function domain_path_menu_local_tasks_alter(&$local_tasks) {
-  $admin_context = \Drupal::service('router.admin_context');
-  if ($admin_context->isAdminRoute() && !empty($local_tasks['tabs'][0])) {
-    // remove domain_path local tasks on admin pages
-    foreach ($local_tasks['tabs'][0] as $local_task_id => $local_task) {
-      if (strpos($local_task_id, 'domain_path.local_tasks') !== FALSE)  {
-        unset($local_tasks['tabs'][0][$local_task_id]);
-        continue;
-      }
-    }
-  }
+  \Drupal::service('domain_path.helper')->deleteEntityDomainPaths($translation);
 }

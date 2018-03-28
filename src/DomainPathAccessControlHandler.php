@@ -8,9 +8,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 
 /**
- * Access controller for the domain path entity.
- *
- * @see \Drupal\comment\Entity\Comment.
+ * Access controller for the domain paths.
  */
 class DomainPathAccessControlHandler extends EntityAccessControlHandler {
 
@@ -23,16 +21,17 @@ class DomainPathAccessControlHandler extends EntityAccessControlHandler {
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     switch ($operation) {
       case 'view':
-        return AccessResult::allowedIfHasPermission($account, 'view domain path entity');
+        return AccessResult::allowedIfHasPermission($account, 'view domain paths');
 
       case 'edit':
-        return AccessResult::allowedIfHasPermission($account, 'edit domain path entity');
+        return AccessResult::allowedIfHasPermission($account, 'edit domain paths');
 
       case 'delete':
-        return AccessResult::allowedIfHasPermission($account, 'delete domain path entity');
-    }
+        return AccessResult::allowedIfHasPermission($account, 'delete domain paths');
 
-    return AccessResult::allowed();
+      default:
+        return AccessResult::allowed();
+    }
   }
 
   /**
@@ -42,7 +41,7 @@ class DomainPathAccessControlHandler extends EntityAccessControlHandler {
    * will be created during the 'add' process.
    */
   protected function checkCreateAccess(AccountInterface $account, array $context, $entity_bundle = NULL) {
-    return AccessResult::allowedIfHasPermission($account, 'add domain path entity');
+    return AccessResult::allowedIfHasPermission($account, 'add domain paths');
   }
 
 }

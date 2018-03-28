@@ -22,7 +22,7 @@ class DomainPathSettingsForm extends ConfigFormBase {
   protected $entityTypeManager;
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($config_factory);
@@ -30,7 +30,7 @@ class DomainPathSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(

@@ -1,10 +1,12 @@
 entity.domain_path.canonical:
-  path: '/domain_path/{domain_path}'
+  path: '/admin/config/domain_path/{domain_path}/edit'
   defaults:
-    _controller: '\Drupal\domain_path\Controller\DomainPathViewController::view'
-    _title: 'Domain path Content'
+    _entity_form: domain_path.edit
+    _title: 'Edit Domain path'
   requirements:
-    _entity_access: 'domain_path.view'
+    _entity_access: 'domain_path.edit'
+  options:
+    _admin_route: TRUE
 
 entity.domain_path.collection:
   path: '/admin/config/domain_path'
@@ -51,7 +53,4 @@ entity.domain_path_settings:
     _form: '\Drupal\domain_path\Form\DomainPathSettingsForm'
     _title: 'Domain path Settings'
   requirements:
-    _permission: 'administer domain path entity'
-
-route_callbacks:
-  - 'Drupal\domain_path\Routing\DomainPathRouteSubscriber::routes'
+    _permission: 'administer domain paths'

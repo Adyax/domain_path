@@ -1,20 +1,13 @@
 services:
-  domain_path.loader:
-    class: Drupal\domain_path\DomainPathLoader
+  domain_path.path_processor:
+    class: Drupal\domain_path\PathProcessor\DomainPathProcessor
+    arguments: ['@language_manager', '@entity_type.manager', '@path.alias_manager', '@domain.negotiator']
     tags:
-      - { name: persist }
-  domain_path.repository:
-    class: Drupal\domain_path\DomainPathRepository
-    arguments: ['@entity.manager', '@database']
-    tags:
-      - { name: backend_overridable }
-  domain_path.redirect:
-    class: Drupal\domain_path\EventSubscriber\DomainPathRedirect
-    arguments: ['@domain.negotiator', '@domain_path.repository', '@language_manager', '@config.factory', '@path.alias_manager', '@module_handler', '@entity.manager', '@redirect.checker', '@router.request_context', '@path_processor_manager']
-    tags:
-      - { name: event_subscriber }
-  domain_path.generator:
-    class: Drupal\domain_path\DomainPathGenerator
-    arguments: ['@config.factory', '@module_handler', '@token', '@pathauto.alias_cleaner', '@pathauto.alias_storage_helper', '@pathauto.alias_uniquifier', '@pathauto.verbose_messenger', '@string_translation', '@token.entity_mapper', '@entity_type.manager']
+      # Priority is very important here. The inbound processor needs to happen
+      # BEFORE the path module alias processor, and the outbound needs to happen
+      # AFTER the alias processor.
+      - { name: path_processor_inbound, priority: 110 }
+      - { name: path_processor_outbound, priority: 200 }
   domain_path.helper:
     class: Drupal\domain_path\DomainPathHelper
+    arguments: ['@current_user', '@entity_type.manager', '@path.alias_manager', '@config.factory']

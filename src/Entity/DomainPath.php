@@ -34,26 +34,25 @@ use Drupal\Core\Url;
  *     "access" = "Drupal\domain_path\DomainPathAccessControlHandler",
  *   },
  *   base_table = "domain_path",
- *   admin_permission = "administer domain path entity",
+ *   admin_permission = "administer domain paths",
  *   fieldable = FALSE,
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
  *     "domain_id" = "domain_id",
- *     "alias" = "alias",
  *     "language" = "language",
- *     "entity_type" = "entity_type",
- *     "entity_id" = "entity_id"
+ *     "alias" = "alias",
+ *     "source" = "source",
  *   },
  *   links = {
- *     "canonical" = "/domain_path/{domain_path}",
+ *     "canonical" = "/admin/config/domain_path/{domain_path}/edit",
  *     "edit-form" = "/admin/config/domain_path/{domain_path}/edit",
  *     "delete-form" = "/admin/config/domain_path/{domain_path}/delete",
  *     "collection" = "/admin/config/domain_path"
  *   }
  * )
  */
-class DomainPath extends ContentEntityBase  implements DomainPathInterface {
+class DomainPath extends ContentEntityBase implements DomainPathInterface {
 
   /**
    * {@inheritdoc}
@@ -105,6 +104,33 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
       ])
       ->setRequired(TRUE);
 
+    $fields['language'] = BaseFieldDefinition::create('language')
+      ->setLabel(t('Language'))
+      ->setDescription(t('The language of Domain path entity.'))
+      ->setRequired(TRUE);
+
+    // Name field for the domain path.
+    // We set display options for the view as well as the form.
+    // Users with correct privileges can change the view and edit configuration.
+    $fields['source'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Source'))
+      ->setDescription(t('The source patch of the Domain path alias.'))
+      ->setSettings(array(
+        'default_value' => '',
+        'max_length' => 255,
+        'text_processing' => 0,
+      ))
+      ->setDisplayOptions('view', array(
+        'label' => 'above',
+        'type' => 'string',
+        'weight' => -5,
+      ))
+      ->setDisplayOptions('form', array(
+        'type' => 'string_textfield',
+        'weight' => -5,
+      ))
+      ->setRequired(TRUE);
+
     // Name field for the domain path.
     // We set display options for the view as well as the form.
     // Users with correct privileges can change the view and edit configuration.
@@ -127,82 +153,7 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
       ))
       ->setRequired(TRUE);
 
-    $fields['language'] = BaseFieldDefinition::create('language')
-      ->setLabel(t('Language'))
-      ->setDescription(t('The language of Domain path entity.'))
-      ->setRequired(TRUE);
-
-    $fields['entity_type'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Entity type'))
-      ->setDescription(t('The entity type of the Domain path entity.'));
-
-    // Owner field of the Domain path.
-    // Entity reference field, holds the reference to the entity object.
-    $fields['entity_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Entity Id'))
-      ->setDescription(t('The Id of the associated entity.'));
-
     return $fields;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
-    parent::postSave($storage, $update);
-
-    if (\Drupal::moduleHandler()->moduleExists('path')) {
-      \Drupal::service('path.alias_storage')->save($this->getSource() , $this->get('alias')->value, $this->get('language')->value);
-    }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function preDelete(EntityStorageInterface $storage, array $entities) {
-    parent::preDelete($storage, $entities);
-
-    // Ensure that all nodes deleted are removed from the search index.
-    if (\Drupal::moduleHandler()->moduleExists('path')) {
-      foreach ($entities as $entity) {
-        $conditions = [
-          'source' => $entity->getSource(),
-          'langcode' => $entity->get('language')->value,
-        ];
-        \Drupal::service('path.alias_storage')->delete($conditions);
-      }
-    }
-  }
-
-
-  /**
-   * Gets the source base URL.
-   *
-   * @return string
-   */
-  public function getUrl() {
-    $url = '';
-    $domain_id = $this->get('domain_id')->get(0)->getValue()['target_id'];
-    $entity_type = $this->get('entity_type')->value;
-    $entity_id = $this->get('entity_id')->get(0)->getValue()['target_id'];
-
-    /*if (!$this->domain_id->entity->isDefault()) {
-      $url = Url::fromRoute('domain_path.view', [
-        'domain' => $domain_id,
-        'entity_type' => $entity_type,
-        'node' => $nid
-      ]);
-    }
-    else {
-      $url = $this->entity_id->entity->toUrl();
-    }*/
-
-    $url = Url::fromRoute("domain_path.view.$entity_type", [
-      'domain' => $domain_id,
-      $entity_type => $entity_id
-    ]);
-
-    return $url;
   }
 
   /**
@@ -211,7 +162,7 @@ class DomainPath extends ContentEntityBase  implements DomainPathInterface {
    * @return string
    */
   public function getSource() {
-    return '/domain_path/' . $this->get('domain_id')->target_id . '/' . $this->get('entity_type')->value . '/' . $this->get('entity_id')->target_id;
+    return $this->get('source')->value;
   }
 
   /**

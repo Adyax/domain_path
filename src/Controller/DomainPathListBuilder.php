@@ -30,7 +30,7 @@ class DomainPathListBuilder extends EntityListBuilder {
   public static function createInstance(ContainerInterface $container, EntityTypeInterface $entity_type) {
     return new static(
       $entity_type,
-      $container->get('entity.manager')->getStorage($entity_type->id()),
+      $container->get('entity_type.manager')->getStorage($entity_type->id()),
       $container->get('url_generator')
     );
   }
@@ -73,11 +73,10 @@ class DomainPathListBuilder extends EntityListBuilder {
    */
   public function buildHeader() {
     $header['id'] = $this->t('Domain Path ID');
-    $header['domain_id'] = $this->t('Domain ID');
-    $header['alias'] = $this->t('Alias');
     $header['language'] = $this->t('Language');
-    $header['entity_type'] = $this->t('Entity Type');
-    $header['entity_id'] = $this->t('Entity ID');
+    $header['domain_id'] = $this->t('Domain ID');
+    $header['source'] = $this->t('Source');
+    $header['alias'] = $this->t('Alias');
 
     return $header + parent::buildHeader();
   }
@@ -88,11 +87,10 @@ class DomainPathListBuilder extends EntityListBuilder {
   public function buildRow(EntityInterface $entity) {
     /* @var $entity \Drupal\domain_path\Entity\DomainPath */
     $row['id'] = $entity->id();
-    $row['domain_id'] = $entity->get('domain_id')->target_id;
-    $row['alias'] = $entity->get('alias')->value;
     $row['language'] = $entity->get('language')->value;
-    $row['entity_type'] = $entity->get('entity_type')->value;
-    $row['entity_id'] = $entity->get('entity_id')->target_id;
+    $row['domain_id'] = $entity->get('domain_id')->target_id;
+    $row['source'] = $entity->get('source')->value;
+    $row['alias'] = $entity->get('alias')->value;
 
     return $row + parent::buildRow($entity);
   }

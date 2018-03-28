@@ -1,13 +1,13 @@
 view domain path list:
   title: 'View all domain paths in the administration list'
-view domain path entity:
-  title: 'View Domain path entity'
-add domain path entity:
-  title: 'Add Domain path entity'
+add domain paths:
+  title: 'Add Domain paths'
+edit domain paths:
+  title: 'Edit Domain paths'
 edit domain path entity:
   title: 'Edit Domain path entity'
-delete domain path entity:
-  title: 'Delete Domain path entity'
-administer domain path entity:
-  title: 'Administer Domain path entity'
+delete domain paths:
+  title: 'Delete Domain paths'
+administer domain paths:
+  title: 'Administer Domain paths'
   restrict access: TRUE
