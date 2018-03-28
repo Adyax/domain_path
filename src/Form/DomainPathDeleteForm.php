@@ -16,7 +16,7 @@ class DomainPathDeleteForm extends ContentEntityDeleteForm {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return $this->t('Are you sure you want to delete entity %id?', array('%id' => $this->entity->id()));
+    return $this->t('Are you sure you want to delete entity %id?', ['%id' => $this->entity->id()]);
   }
 
   /**

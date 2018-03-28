@@ -38,12 +38,16 @@ class DomainPathHelper {
   protected $config;
 
   /**
-   * DomainPath constructor.
+   * DomainPathHelper constructor.
    *
    * @param \Drupal\Core\Session\AccountInterface $account_manager
+   *   The account manager.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
+   *   The alias manager.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The configuration factory.
    */
   public function __construct(AccountInterface $account_manager, EntityTypeManagerInterface $entity_type_manager, AliasManagerInterface $alias_manager, ConfigFactoryInterface $config_factory) {
     $this->accountManager = $account_manager;
@@ -165,8 +169,10 @@ class DomainPathHelper {
    * a validation handler so that our dependencies are injected when the
    * service is loaded via \Drupal::service().
    *
-   * @param $form
+   * @param array $form
+   *   The form array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
    */
   public static function validateEntityForm(array &$form, FormStateInterface $form_state) {
     // Set up variables.
@@ -197,7 +203,8 @@ class DomainPathHelper {
     }
     // If domain access is on for this form, we check the "all affiliates"
     // checkbox, otherwise we just assume it's available on all domains.
-    $domain_access_all = !empty($form['field_domain_all_affiliates']) ? $form_state->getValue('field_domain_all_affiliates')['value'] : TRUE;
+    $domain_access_all = !empty($form['field_domain_all_affiliates'])
+      ? $form_state->getValue('field_domain_all_affiliates')['value'] : TRUE;
 
     // Validate each path value.
     foreach ($domain_path_values as $domain_id => $path) {
@@ -241,8 +248,10 @@ class DomainPathHelper {
    * a submit handler so that our dependencies are injected when the
    * service is loaded via \Drupal::service().
    *
-   * @param $form
+   * @param array $form
+   *   The form array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
    */
   public function submitEntityForm($form, FormStateInterface $form_state) {
     // Setup Variables
@@ -323,6 +332,7 @@ class DomainPathHelper {
    * Helper function for deleting domain paths from an entity.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity object.
    */
   public function deleteEntityDomainPaths(EntityInterface $entity) {
     if ($this->domainPathsIsEnabled($entity)) {
@@ -330,8 +340,9 @@ class DomainPathHelper {
         'source' => '/' . $entity->toUrl()->getInternalPath(),
         'language' => $entity->language()->getId(),
       ];
-      $domain_paths = $this->entityTypeManager->getStorage('domain_path')->loadByProperties($properties_map);
-
+      $domain_paths = $this->entityTypeManager
+        ->getStorage('domain_path')
+        ->loadByProperties($properties_map);
       if ($domain_paths) {
         foreach ($domain_paths as $domain_path) {
           $domain_path->delete();
@@ -343,11 +354,13 @@ class DomainPathHelper {
   /**
    * Helper function for retrieving configured entity types.
    *
-   * @return array|mixed|null
+   * @return array
+   *   Returns array of configured entity types.
    */
   public function getConfiguredEntityTypes() {
     $enabled_entity_types = $this->config->get('entity_types');
     $enabled_entity_types = array_filter($enabled_entity_types);
+
     return array_keys($enabled_entity_types);
   }
 
@@ -355,8 +368,10 @@ class DomainPathHelper {
    * Check if domain paths is enabled for a given entity.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity object.
    *
    * @return boolean
+   *   Return TRUE or FALSE.
    */
   public function domainPathsIsEnabled(EntityInterface $entity) {
     return in_array($entity->getEntityTypeId(), $this->getConfiguredEntityTypes());

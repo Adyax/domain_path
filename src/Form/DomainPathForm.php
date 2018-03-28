@@ -136,7 +136,8 @@ class DomainPathForm extends ContentEntityForm {
     $entity = $this->entity;
     if ($status == SAVED_UPDATED) {
       drupal_set_message($this->t('The domain path %feed has been updated.', ['%feed' => $entity->toLink()->toString()]));
-    } else {
+    }
+    else {
       drupal_set_message($this->t('The domain path %feed has been added.', ['%feed' => $entity->toLink()->toString()]));
     }
 

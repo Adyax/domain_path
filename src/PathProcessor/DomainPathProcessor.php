@@ -53,10 +53,16 @@ class DomainPathProcessor implements InboundPathProcessorInterface, OutboundPath
   protected $domainNegotiator;
 
   /**
-   * Constructs a PathProcessorAlias object.
+   * DomainPathProcessor constructor.
    *
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language_manager
+   *   The language manager.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface
+   *   The entity type manager.
    * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
-   *   An alias manager for looking up the system path.
+   *   The alias manager.
+   * @param \Drupal\domain\DomainNegotiatorInterface $domain_negotiator
+   *   The domain negotiator.
    */
   public function __construct(LanguageManagerInterface $language_manager, EntityTypeManagerInterface $entity_type_manager, AliasManagerInterface $alias_manager, DomainNegotiatorInterface $domain_negotiator) {
     $this->languageManager = $language_manager;
@@ -81,8 +87,8 @@ class DomainPathProcessor implements InboundPathProcessorInterface, OutboundPath
     if (empty($domain_paths)) {
       return $path;
     }
-
     $domain_path = reset($domain_paths);
+
     return $domain_path->getSource();
   }
 
@@ -113,9 +119,9 @@ class DomainPathProcessor implements InboundPathProcessorInterface, OutboundPath
       // then we have a match and we output the alias, otherwise we just pass
       // the original $path along.
       return $domain_path->getAlias();
-
     }
 
     return $path;
   }
+
 }

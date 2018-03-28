@@ -19,7 +19,8 @@ class DomainPathListCheck {
    * @return \Drupal\Core\Access\AccessResult
    */
   public static function viewDomainPathList(AccountInterface $account) {
-    if ($account->hasPermission('administer domain paths') || $account->hasPermission('view domain paths')) {
+    if ($account->hasPermission('administer domain paths')
+      || $account->hasPermission('view domain paths')) {
       return AccessResult::allowed();
     }
     return AccessResult::forbidden();

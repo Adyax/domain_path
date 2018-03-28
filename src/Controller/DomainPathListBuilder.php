@@ -53,19 +53,6 @@ class DomainPathListBuilder extends EntityListBuilder {
   /**
    * {@inheritdoc}
    *
-   * We override ::render() so that we can add our own content above the table.
-   * parent::render() is where EntityListBuilder creates the table using our
-   * buildHeader() and buildRow() implementations.
-   */
-  public function render() {
-    $build['table'] = parent::render();
-
-    return $build;
-  }
-
-  /**
-   * {@inheritdoc}
-   *
    * Building the header and content lines for the contact list.
    *
    * Calling the parent::buildHeader() adds a column for the possible actions

@@ -10,8 +10,6 @@ use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\domain_path\DomainPathInterface;
-use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\Core\Url;
 
 /**
  * Defines the DomainPath entity.
@@ -115,20 +113,20 @@ class DomainPath extends ContentEntityBase implements DomainPathInterface {
     $fields['source'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Source'))
       ->setDescription(t('The source patch of the Domain path alias.'))
-      ->setSettings(array(
+      ->setSettings([
         'default_value' => '',
         'max_length' => 255,
         'text_processing' => 0,
-      ))
-      ->setDisplayOptions('view', array(
+      ])
+      ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
         'weight' => -5,
-      ))
-      ->setDisplayOptions('form', array(
+      ])
+      ->setDisplayOptions('form', [
         'type' => 'string_textfield',
         'weight' => -5,
-      ))
+      ])
       ->setRequired(TRUE);
 
     // Name field for the domain path.
@@ -137,40 +135,43 @@ class DomainPath extends ContentEntityBase implements DomainPathInterface {
     $fields['alias'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Alias'))
       ->setDescription(t('The alias of the Domain path entity.'))
-      ->setSettings(array(
+      ->setSettings([
         'default_value' => '',
         'max_length' => 255,
         'text_processing' => 0,
-      ))
-      ->setDisplayOptions('view', array(
+      ])
+      ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
         'weight' => -5,
-      ))
-      ->setDisplayOptions('form', array(
+      ])
+      ->setDisplayOptions('form', [
         'type' => 'string_textfield',
         'weight' => -5,
-      ))
+      ])
       ->setRequired(TRUE);
 
     return $fields;
   }
 
   /**
-   * Get system path for domain_path source
+   * Get source for domain_path.
    *
    * @return string
+   *   Returns domain path source.
    */
   public function getSource() {
     return $this->get('source')->value;
   }
 
   /**
-   * Get system path for domain_path source
+   * Get alias for domain_path.
    *
    * @return string
+   *   Returns domain path alias.
    */
   public function getAlias() {
     return $this->get('alias')->value;
   }
+
 }

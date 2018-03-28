@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class DomainPathSettingsForm.
+ *
  * @package Drupal\domain_path\Form
  * @ingroup domain_path
  */
