@@ -174,4 +174,14 @@ class DomainPath extends ContentEntityBase implements DomainPathInterface {
     return $this->get('alias')->value;
   }
 
+  /**
+   * Get language code for domain_path.
+   *
+   * @return string
+   *   Returns domain path language code.
+   */
+  public function getLanguageCode() {
+    return $this->get('language')->value;
+  }
+
 }

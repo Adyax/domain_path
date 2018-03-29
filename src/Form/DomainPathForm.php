@@ -73,7 +73,7 @@ class DomainPathForm extends ContentEntityForm {
     /* @var $entity \Drupal\domain_path\Entity\DomainPath */
     $form = parent::buildForm($form, $form_state);
     $options = [];
-    $langcode = Language::LANGCODE_NOT_SPECIFIED;
+    $entity = $form_state->getFormObject()->getEntity();
 
     foreach ($this->languageManager->getLanguages() as $language) {
       $options[$language->getId()] = $language->getName();
@@ -83,7 +83,7 @@ class DomainPathForm extends ContentEntityForm {
       '#title' => $this->t('Language'),
       '#type' => 'language_select',
       '#options' => $options,
-      '#default_value' => $langcode,
+      '#default_value' => $entity->getLanguageCode(),
       '#languages' => Language::STATE_ALL,
     ];
 
