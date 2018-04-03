@@ -77,4 +77,13 @@ abstract class DomainPathTestBase extends DomainTestBase {
     $this->assertSession()->statusCodeEquals(200);
   }
 
+  /**
+   * Reusable test function for checking initial / empty table status.
+   */
+  public function domainPathTableIsEmpty() {
+    $domain_path_storage = \Drupal::service('entity_type.manager')->getStorage('domain_path');
+    $domain_paths = $domain_path_storage->loadMultiple();
+    $this->assertTrue(empty($domain_paths), 'No domain paths have been created.');
+  }
+
 }
